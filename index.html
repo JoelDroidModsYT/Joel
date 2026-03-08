@@ -35,6 +35,8 @@
             --detail-name-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
             --warning-bg: rgba(245, 158, 11, 0.1);
             --warning-text: #f59e0b;
+            --toast-bg: #10b981;
+            --toast-text: #ffffff;
         }
 
         .light-mode {
@@ -54,6 +56,8 @@
             --detail-name-shadow: none;
             --warning-bg: rgba(217, 119, 6, 0.08);
             --warning-text: #b45309;
+            --toast-bg: #059669;
+            --toast-text: #ffffff;
         }
 
         body { 
@@ -206,15 +210,36 @@
             margin-top: -2px;
             letter-spacing: 0.05em;
         }
+
+        /* Toast de notificación */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            z-index: 200;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body class="flex flex-col">
 
     <div class="neon-background" id="neon-bg-main"></div>
+    <div id="toast">Enlace copiado</div>
 
     <nav id="main-nav" class="sticky top-0 z-50 py-4 px-6">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <div onclick="window.location.reload()" class="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform">
+            <div onclick="window.location.hash = ''" class="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform">
                 <div class="w-11 h-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40">
                     <i data-lucide="zap" class="w-6 h-6 text-white fill-current"></i>
                 </div>
@@ -231,7 +256,7 @@
         </div>
     </nav>
 
-    <main class="max-w-md mx-auto px-5 py-8 flex-grow w-full z-10">
+    <main id="home-view" class="max-w-md mx-auto px-5 py-8 flex-grow w-full z-10">
         <div id="home-banner" class="mb-10 p-8 rounded-[40px] bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-2xl relative overflow-hidden border-2 border-blue-400/30">
             <div class="relative z-10">
                 <h2 class="font-black text-3xl uppercase leading-none mb-2 tracking-tighter">PREMIUM APKS</h2>
@@ -259,8 +284,14 @@
             <div class="relative h-[320px] flex flex-col items-center justify-center p-8 text-center">
                 <div class="absolute inset-0 bg-gradient-to-b from-blue-600/30 to-transparent"></div>
                 
-                <button onclick="window.goToHome()" class="absolute top-8 left-8 w-12 h-12 rounded-2xl flex items-center justify-center z-50 bg-blue-600 text-white border-2 border-blue-400 shadow-xl active:scale-90 transition-transform">
+                <!-- Botón Volver -->
+                <button onclick="window.location.hash = ''" class="absolute top-8 left-8 w-12 h-12 rounded-2xl flex items-center justify-center z-50 bg-blue-600 text-white border-2 border-blue-400 shadow-xl active:scale-90 transition-transform">
                     <i data-lucide="chevron-left" class="w-7 h-7"></i>
+                </button>
+
+                <!-- Botón Compartir -->
+                <button onclick="window.shareGame()" class="absolute top-8 right-8 w-12 h-12 rounded-2xl flex items-center justify-center z-50 bg-blue-500/20 text-blue-500 border-2 border-blue-500/30 backdrop-blur-md shadow-xl active:scale-90 transition-transform">
+                    <i data-lucide="share-2" class="w-6 h-6"></i>
                 </button>
                 
                 <div class="relative mt-4">
@@ -348,10 +379,18 @@
 
         let isDarkMode = true;
 
-        // Función para establecer el modo según la hora del día
+        // Rutas y Navegación
+        window.onhashchange = function() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                window.openDetailUI(hash);
+            } else {
+                window.goToHome();
+            }
+        };
+
         function checkAutoTheme() {
             const hour = new Date().getHours();
-            // Día: 6:00 AM a 6:00 PM (18:00)
             const isDayTime = hour >= 6 && hour < 18;
             setTheme(!isDayTime);
         }
@@ -406,7 +445,7 @@
                             <span class="text-[9px] font-black text-blue-500 uppercase">• PESO: ${game.weight}</span>
                         </div>
                         <p class="text-[11px] line-clamp-2 opacity-70" style="color: var(--text-muted)">${game.shortDesc}</p>
-                        <button onclick="window.openDetailUI('${game.id}')" class="mt-4 w-full btn-download-premium py-2.5 rounded-2xl text-[9px] tracking-widest active:scale-95 transition-all">
+                        <button onclick="window.location.hash = '${game.id}'" class="mt-4 w-full btn-download-premium py-2.5 rounded-2xl text-[9px] tracking-widest active:scale-95 transition-all">
                             DOWNLOAD MOD APK
                         </button>
                     </div>
@@ -417,6 +456,11 @@
 
         window.openDetailUI = function(id) {
             const game = gamesData.find(g => g.id === id);
+            if (!game) {
+                window.location.hash = '';
+                return;
+            }
+
             document.getElementById('detail-name').innerText = game.name;
             document.getElementById('detail-thumb').src = game.thumb;
             document.getElementById('detail-version').innerText = "VERSIÓN: " + game.version;
@@ -429,12 +473,34 @@
             `).join('');
             
             document.getElementById('detail-overlay').classList.remove('hidden');
+            document.getElementById('home-view').classList.add('hidden');
             populateNeonBackground('neon-bg-overlay', 15);
+            window.scrollTo(0,0);
             if(window.lucide) lucide.createIcons();
         };
 
         window.goToHome = function() { 
             document.getElementById('detail-overlay').classList.add('hidden'); 
+            document.getElementById('home-view').classList.remove('hidden');
+        };
+
+        window.shareGame = function() {
+            const url = window.location.href;
+            
+            // Método robusto de copiado
+            const textArea = document.createElement("textarea");
+            textArea.value = url;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            } catch (err) {
+                console.error('Error al copiar', err);
+            }
+            document.body.removeChild(textArea);
         };
 
         window.toggleTheme = function() {
@@ -442,9 +508,13 @@
         };
 
         window.onload = () => { 
-            checkAutoTheme(); // Carga automática según la hora
+            checkAutoTheme();
             populateNeonBackground('neon-bg-main', 25);
             window.renderGames(); 
+            // Cargar por hash al inicio si existe
+            if(window.location.hash) {
+                window.openDetailUI(window.location.hash.substring(1));
+            }
         };
     </script>
 </body>
