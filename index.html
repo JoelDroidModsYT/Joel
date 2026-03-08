@@ -373,13 +373,17 @@
 
         onAuthStateChanged(auth, u => {
             currentUser = u;
-            // Lógica para detectar el juego en la URL y abrir el menú directamente
+            // PRIMERO renderizamos los juegos para que existan en el DOM
+            window.renderGames();
+            
+            // LUEGO comprobamos la URL para abrir el detalle automáticamente
             const urlParams = new URLSearchParams(window.location.search);
             const gId = urlParams.get('g');
             if(gId) {
-                window.openDetail(gId);
-            } else {
-                window.renderGames();
+                // Pequeño timeout para asegurar que el DOM está listo antes de disparar la animación de apertura
+                setTimeout(() => {
+                    window.openDetail(gId);
+                }, 50);
             }
         });
 
