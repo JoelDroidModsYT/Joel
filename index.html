@@ -13,7 +13,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Lucide Icons (Carga prioritaria) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
@@ -21,7 +21,7 @@
         
         body { 
             font-family: 'Inter', sans-serif; 
-            transition: background-color 0.3s ease; 
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s ease; 
             overflow-x: hidden;
             background-color: #0a0c10;
         }
@@ -30,13 +30,27 @@
             display: none; 
         }
 
-        /* Mejora de suavidad en transiciones */
         .game-card {
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s ease;
         }
         
-        /* Evitar saltos de contenido (Layout Shift) */
         img { content-visibility: auto; }
+
+        .star-active {
+            fill: #3b82f6;
+            color: #3b82f6 !important;
+        }
+
+        .download-btn-premium {
+            background: linear-gradient(to right, #2563eb, #1d4ed8);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+            transition: all 0.2s ease;
+            color: white !important;
+        }
+        
+        .download-btn-premium:active {
+            transform: scale(0.97);
+        }
     </style>
 </head>
 <body class="text-gray-100 min-h-screen">
@@ -44,7 +58,7 @@
     <!-- NAVBAR -->
     <nav id="main-nav" class="sticky top-0 z-50 backdrop-blur-md border-b border-white/5 bg-[#0a0c10]/80 py-3 px-4">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
+            <div onclick="window.location.reload()" class="flex items-center gap-2 cursor-pointer active:scale-95 transition-transform">
                 <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-500/20">
                     <i data-lucide="bolt" class="w-4 h-4 text-white"></i>
                 </div>
@@ -71,10 +85,8 @@
             <i data-lucide="bolt" class="absolute -right-4 -bottom-4 opacity-10 w-32 h-32 rotate-12"></i>
         </div>
 
-        <!-- LISTA DE JUEGOS (Renderizado Inmediato) -->
-        <div id="game-list" class="space-y-4">
-            <!-- Se inyectará inmediatamente por el script inferior -->
-        </div>
+        <!-- LISTA DE JUEGOS -->
+        <div id="game-list" class="space-y-4"></div>
     </main>
 
     <!-- DETALLE DEL JUEGO -->
@@ -92,68 +104,73 @@
                     <img id="detail-thumb" src="" class="w-24 h-24 rounded-[32px] shadow-2xl border-4 border-white/10 object-cover z-10 relative">
                     <div class="absolute inset-0 bg-blue-500 blur-2xl opacity-20 scale-150"></div>
                 </div>
-                <h3 id="detail-name" class="font-black text-xl uppercase mb-1 text-white"></h3>
+                <h3 id="detail-name" class="font-black text-xl uppercase mb-1"></h3>
                 <span id="detail-version" class="text-[9px] font-black bg-blue-600 text-white px-4 py-1 rounded-full shadow-lg tracking-wider uppercase"></span>
             </div>
 
             <div id="detail-main-container" class="px-6 space-y-5 pb-10">
-                <div id="detail-info-box" class="p-5 rounded-3xl border border-white/5 bg-white/5 text-blue-400">
+                <div id="detail-info-box" class="p-5 rounded-3xl border">
                     <div>
-                        <h4 class="text-[10px] font-black uppercase mb-3 flex items-center gap-2"><i data-lucide="rocket" class="w-3 h-3 text-blue-500"></i> Resumen del Mod:</h4>
+                        <h4 id="resumen-titulo" class="text-[10px] font-black uppercase mb-3 flex items-center gap-2">
+                            <i data-lucide="rocket" class="w-3 h-3 text-blue-500"></i> Resumen del Mod:
+                        </h4>
                         <div id="detail-features" class="grid grid-cols-1 gap-2"></div>
                     </div>
-                    <div id="weight-section" class="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                    <!-- PESO DEL JUEGO: Corregido fondo en modo claro -->
+                    <div id="weight-section" class="flex items-center justify-between p-3 rounded-2xl border mt-4">
                         <div class="flex items-center gap-2">
                             <i data-lucide="hard-drive" class="w-3 h-3 text-amber-600"></i>
-                            <span class="text-[10px] font-black uppercase text-amber-600">Resumen de Peso:</span>
+                            <span class="text-[10px] font-black uppercase text-amber-600">Peso:</span>
                         </div>
-                        <span id="detail-weight" class="text-[10px] font-black px-3 py-1 rounded-lg bg-amber-500/15 text-amber-600 border border-amber-500/10"></span>
+                        <span id="detail-weight" class="text-[10px] font-black px-3 py-1 rounded-lg border"></span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-3">
-                    <button onclick="window.startDownload('MOD 1')" class="download-btn w-full flex items-center justify-between p-4 rounded-3xl border border-white/5 bg-white/5">
+                <!-- Botones de descarga -->
+                <div id="download-buttons-container" class="grid grid-cols-1 gap-3">
+                    <button onclick="window.startDownload('MOD 1')" class="download-btn-premium w-full flex items-center justify-between p-4 rounded-3xl border border-white/20">
                         <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
+                            <div class="w-2 h-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]"></div>
                             <div class="text-left">
-                                <span class="btn-title block text-xs font-black uppercase text-white">DOWNLOAD MOD 1</span>
-                                <span class="text-[8px] text-gray-500 font-bold uppercase">Mediafire • Principal</span>
+                                <span class="block text-xs font-black uppercase">DOWNLOAD MOD 1</span>
+                                <span class="text-[8px] opacity-70 font-bold uppercase">Mediafire • Principal</span>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-blue-500"></i>
+                        <i data-lucide="download" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="window.startDownload('MOD 2')" class="download-btn w-full flex items-center justify-between p-4 rounded-3xl border border-white/5 bg-white/5">
+                    <button onclick="window.startDownload('MOD 2')" class="download-btn-premium w-full flex items-center justify-between p-4 rounded-3xl border border-white/20">
                         <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div>
+                            <div class="w-2 h-2 rounded-full bg-white/50 shadow-[0_0_8px_rgba(255,255,255,0.4)]"></div>
                             <div class="text-left">
-                                <span class="btn-title block text-xs font-black uppercase text-white">DOWNLOAD MOD 2</span>
-                                <span class="text-[8px] text-gray-500 font-bold uppercase">Mediafire • Espejo</span>
+                                <span class="block text-xs font-black uppercase">DOWNLOAD MOD 2</span>
+                                <span class="text-[8px] opacity-70 font-bold uppercase">Mediafire • Espejo</span>
                             </div>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-blue-500"></i>
+                        <i data-lucide="download" class="w-4 h-4"></i>
                     </button>
                 </div>
 
-                <div id="comment-section-box" class="p-5 rounded-3xl border border-white/5 bg-white/5">
+                <!-- Sección de Comentarios -->
+                <div id="comment-section-box" class="p-5 rounded-3xl border">
                     <div class="flex justify-between items-center mb-4">
                         <div>
-                            <span class="text-[9px] font-black text-gray-500 uppercase block mb-1">Puntuación</span>
+                            <span class="text-[9px] font-black text-gray-500 uppercase block mb-1">Tu Puntuación</span>
                             <div class="flex gap-1" id="star-rating">
-                                <i data-lucide="star" class="star-icon w-3.5 h-3.5 text-gray-400"></i>
-                                <i data-lucide="star" class="star-icon w-3.5 h-3.5 text-gray-400"></i>
-                                <i data-lucide="star" class="star-icon w-3.5 h-3.5 text-gray-400"></i>
-                                <i data-lucide="star" class="star-icon w-3.5 h-3.5 text-gray-400"></i>
-                                <i data-lucide="star" class="star-icon w-3.5 h-3.5 text-gray-400"></i>
+                                <i data-lucide="star" onclick="window.setRating(1)" class="star-icon cursor-pointer w-4 h-4 text-gray-400"></i>
+                                <i data-lucide="star" onclick="window.setRating(2)" class="star-icon cursor-pointer w-4 h-4 text-gray-400"></i>
+                                <i data-lucide="star" onclick="window.setRating(3)" class="star-icon cursor-pointer w-4 h-4 text-gray-400"></i>
+                                <i data-lucide="star" onclick="window.setRating(4)" class="star-icon cursor-pointer w-4 h-4 text-gray-400"></i>
+                                <i data-lucide="star" onclick="window.setRating(5)" class="star-icon cursor-pointer w-4 h-4 text-gray-400"></i>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div id="stat-avg" class="text-xl font-black leading-none text-blue-500">5.0</div>
+                            <div id="stat-avg" class="text-xl font-black leading-none text-blue-500">0.0</div>
                             <span id="stat-count" class="text-[8px] font-bold text-gray-400 uppercase">0 Votos</span>
                         </div>
                     </div>
                     <div id="comments-list" class="max-h-60 overflow-y-auto space-y-3 pr-2 scrollbar-hide mb-4"></div>
                     <div class="flex gap-2">
-                        <input id="comment-input" type="text" placeholder="Escribe un comentario..." class="flex-grow text-[10px] p-3 rounded-2xl outline-none border border-white/10 bg-[#0a0c10] text-white focus:border-blue-500">
+                        <input id="comment-input" type="text" placeholder="Escribe un comentario..." class="flex-grow text-[10px] p-3 rounded-2xl outline-none border">
                         <button onclick="window.sendComment()" class="w-11 h-11 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20 active:scale-90 transition-transform">
                             <i data-lucide="send" class="w-4 h-4"></i>
                         </button>
@@ -174,7 +191,7 @@
         Enlace copiado al portapapeles
     </div>
 
-    <footer id="main-footer" class="py-10 px-4 border-t border-white/5 bg-[#0a0c10] text-center">
+    <footer id="main-footer" class="py-10 px-4 border-t text-center">
         <div class="flex flex-col items-center gap-3">
             <div class="flex items-center gap-2">
                 <div class="w-6 h-6 rounded-md flex items-center justify-center bg-blue-600">
@@ -186,9 +203,7 @@
         </div>
     </footer>
 
-    <!-- LOGICA DE CONTROL (Scripts Sincronizados) -->
     <script>
-        // CONFIGURACIÓN GLOBAL Y DATOS
         const gamesData = [
             { id: "global-truck", name: "Global Truck Online", thumb: "https://play-lh.googleusercontent.com/JJiHxM3IMImgKaROZ3U6yivclo5jxepBfZRShfCoxij7SrY233VKi_sp0YoxiWyHSfttjrgfYAy2vDVtYiaU5dw=w240-h480-rw", version: "V0.0.91", weight: "700 MB", desc: "Dinero infinito, camiones premium desbloqueados y personalización total.", features: ["Dinero Infinito", "Camiones VIP", "Sin Publicidad"] },
             { id: "bigrigs-sim", name: "Truck Simulator Bigrigs", thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd0ALg5YipsGER2CjBhltvbsAHovUOjx2TzkSEoIAIR0RXgiu2jz-l2JE&s=10", version: "V1.5.7", weight: "1.1 GB", desc: "Simulación realista sin anuncios y con todas las rutas abiertas.", features: ["Full Desbloqueado", "Tanque Infinito", "Rutas Pro"] },
@@ -198,11 +213,17 @@
         let darkMode = true;
         let selectedGame = null;
 
-        // FUNCIONES DE UI (Ejecución Instantánea)
+        window.autoDetectTheme = function() {
+            const hour = new Date().getHours();
+            const isDayTime = hour >= 6 && hour < 18;
+            window.toggleTheme(!isDayTime);
+        };
+
         window.renderGames = function() {
             const container = document.getElementById('game-list');
+            if(!container) return;
             container.innerHTML = gamesData.map(game => `
-                <div class="game-card flex gap-3 p-3 rounded-[24px] border border-white/5 bg-[#11141b] shadow-md ${!darkMode ? 'bg-white border-black/5' : ''}">
+                <div class="game-card flex gap-3 p-3 rounded-[24px] border ${darkMode ? 'border-white/5 bg-[#11141b] shadow-md' : 'bg-white border-black/5 shadow-sm'}">
                     <div class="relative flex-shrink-0">
                         <img src="${game.thumb}" class="w-[85px] h-[85px] object-cover rounded-2xl bg-gray-800" alt="${game.name}" loading="eager">
                         <span class="absolute -top-1 -right-1 bg-green-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded shadow-lg border border-white/20 uppercase">UPDATE</span>
@@ -219,7 +240,7 @@
                             </button>
                         </div>
                         <p class="text-[10px] leading-tight line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}">${game.desc}</p>
-                        <button onclick="window.openDetail('${game.id}')" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-transform mt-2">
+                        <button onclick="window.openDetail('${game.id}')" class="w-full download-btn-premium py-2 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-transform mt-2">
                             DOWNLOAD MOD APK
                         </button>
                     </div>
@@ -228,10 +249,11 @@
             if(window.lucide) lucide.createIcons();
         };
 
-        window.toggleTheme = function() {
-            darkMode = !darkMode;
+        window.toggleTheme = function(forceTheme = null) {
+            darkMode = forceTheme !== null ? forceTheme : !darkMode;
+            
             document.body.style.backgroundColor = darkMode ? "#0a0c10" : "#f9fafb";
-            document.body.className = darkMode ? "text-gray-100 min-h-screen" : "text-gray-900 min-h-screen bg-gray-50";
+            document.body.className = darkMode ? "text-gray-100 min-h-screen" : "text-gray-900 min-h-screen";
             document.getElementById('main-nav').className = `sticky top-0 z-50 backdrop-blur-md border-b py-3 px-4 ${darkMode ? 'border-white/5 bg-[#0a0c10]/80' : 'border-black/5 bg-white/80'}`;
             document.getElementById('main-footer').className = `py-10 px-4 border-t text-center ${darkMode ? 'border-white/5 bg-[#0a0c10]' : 'border-black/5 bg-gray-100'}`;
             
@@ -241,15 +263,16 @@
             
             window.renderGames();
             if(selectedGame) window.updateDetailUI();
+            if(window.lucide) lucide.createIcons();
         };
 
         window.openDetail = function(id) {
             selectedGame = gamesData.find(g => g.id === id);
+            if(!selectedGame) return;
             window.updateDetailUI();
             document.getElementById('detail-overlay').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             if(window.setupFirebaseListeners) window.setupFirebaseListeners(id);
-            lucide.createIcons();
         };
 
         window.closeDetail = function() {
@@ -261,44 +284,45 @@
         window.updateDetailUI = function() {
             if(!selectedGame) return;
             const overlay = document.getElementById('detail-overlay');
-            overlay.className = `fixed inset-0 z-[100] overflow-y-auto ${darkMode ? 'bg-[#0a0c10]' : 'bg-gray-50'}`;
+            overlay.className = `fixed inset-0 z-[100] overflow-y-auto ${darkMode ? 'bg-[#0a0c10] text-gray-100' : 'bg-gray-50 text-gray-900'}`;
             
             document.getElementById('detail-name').innerText = selectedGame.name;
-            document.getElementById('detail-name').style.color = darkMode ? "white" : "#111827";
-            document.getElementById('detail-version').innerText = `VERSION ${selectedGame.version}`;
+            document.getElementById('detail-name').className = `font-black text-xl uppercase mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`;
             document.getElementById('detail-thumb').src = selectedGame.thumb;
-            document.getElementById('detail-weight').innerText = selectedGame.weight;
             
-            document.getElementById('detail-features').innerHTML = selectedGame.features.map(f => `
-                <div class="flex items-center gap-2 text-[10px] font-bold uppercase ${darkMode ? 'text-blue-400' : 'text-blue-600'}">
-                    <i data-lucide="shield-check" class="w-3 h-3 text-green-500"></i> ${f}
-                </div>
-            `).join('');
+            // Peso del juego con estilos reactivos
+            const wSection = document.getElementById('weight-section');
+            const wLabel = document.getElementById('detail-weight');
+            wLabel.innerText = selectedGame.weight;
+            wSection.className = `flex items-center justify-between p-3 rounded-2xl border mt-4 ${darkMode ? 'bg-white/5 border-white/5' : 'bg-amber-500/10 border-amber-500/20'}`;
+            wLabel.className = `text-[10px] font-black px-3 py-1 rounded-lg border ${darkMode ? 'bg-amber-500/15 text-amber-600 border-amber-500/10' : 'bg-white text-amber-600 border-amber-500/30 shadow-sm'}`;
 
-            // Actualizar contenedores
-            document.getElementById('detail-info-box').className = `p-5 rounded-3xl border transition-all flex flex-col gap-4 ${darkMode ? 'border-white/5 bg-white/5 text-blue-400' : 'border-black/5 bg-white shadow-sm text-blue-700'}`;
-            document.getElementById('weight-section').className = `p-3 rounded-2xl flex items-center justify-between border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-black/5'}`;
-            document.getElementById('comment-section-box').className = `p-5 rounded-3xl border ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/5 bg-white shadow-sm'}`;
-            document.getElementById('comment-input').className = `flex-grow text-[10px] p-3 rounded-2xl outline-none border ${darkMode ? 'border-white/10 bg-[#0a0c10] text-white focus:border-blue-500' : 'border-black/10 bg-gray-50 text-gray-900 focus:border-blue-600'}`;
+            document.getElementById('detail-features').innerHTML = selectedGame.features.map(f => `<div class="flex items-center gap-2 text-[10px] font-bold uppercase ${darkMode ? 'text-blue-400' : 'text-blue-700'}"><i data-lucide="shield-check" class="w-3 h-3 text-green-500"></i> ${f}</div>`).join('');
             
-            document.querySelectorAll('.download-btn').forEach(btn => {
-                btn.className = `download-btn w-full flex items-center justify-between p-4 rounded-3xl border transition-colors ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/5 bg-white shadow-sm'}`;
-                btn.querySelector('.btn-title').style.color = darkMode ? "white" : "#111827";
-            });
-
+            document.getElementById('detail-info-box').className = `p-5 rounded-3xl border transition-all ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/5 bg-white shadow-sm'}`;
+            document.getElementById('comment-section-box').className = `p-5 rounded-3xl border transition-all ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/5 bg-white shadow-sm'}`;
+            document.getElementById('comment-input').className = `flex-grow text-[10px] p-3 rounded-2xl outline-none border transition-all ${darkMode ? 'border-white/10 bg-[#0a0c10] text-white focus:border-blue-500' : 'border-black/10 bg-gray-50 text-gray-900 focus:border-blue-600'}`;
+            
+            document.getElementById('resumen-titulo').className = `text-[10px] font-black uppercase mb-3 flex items-center gap-2 ${darkMode ? 'text-blue-400' : 'text-blue-700'}`;
+            
             document.getElementById('detail-back-btn').className = `absolute top-6 left-6 w-10 h-10 rounded-xl flex items-center justify-center z-50 backdrop-blur-sm ${darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-gray-800'}`;
             document.getElementById('detail-share-btn').className = `absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center z-50 backdrop-blur-sm ${darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-gray-800'}`;
             
-            document.getElementById('detail-share-btn').onclick = () => window.shareGame(selectedGame.id, selectedGame.name);
+            if(window.lucide) lucide.createIcons();
         };
 
         window.shareGame = async function(id, name) {
-            const url = `${window.location.origin}${window.location.pathname}?g=${id}`;
+            let currentPath = window.location.href.split('?')[0].split('#')[0];
+            const shareUrl = `${currentPath}?g=${id}`;
             if (navigator.share) {
-                navigator.share({ title: 'JoelDroid Mods', text: `Descarga ${name}`, url });
+                navigator.share({ title: 'JoelDroid Mods', text: `Descarga ${name} Mod APK`, url: shareUrl });
             } else {
-                navigator.clipboard.writeText(url);
-                const t = document.getElementById('toast-msg'); t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 2000);
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    const t = document.getElementById('toast-msg'); 
+                    t.classList.remove('hidden'); 
+                    setTimeout(()=>t.classList.add('hidden'), 2000);
+                } catch (err) {}
             }
         };
 
@@ -308,46 +332,70 @@
             l.classList.remove('hidden'); setTimeout(()=>l.classList.add('hidden'), 2500);
         };
 
-        // RENDERIZADO INICIAL (Antes de Firebase)
-        window.renderGames();
-        lucide.createIcons();
+        window.autoDetectTheme();
     </script>
 
-    <!-- FIREBASE (Carga Asíncrona) -->
+    <!-- FIREBASE LÓGICA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = window.__firebase_config ? JSON.parse(window.__firebase_config) : { projectId: "joeldroid-mods" };
+        const firebaseConfig = JSON.parse(window.__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = window.__app_id || 'joeldroid-mods-yt';
+        const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'joeldroid-mods-yt';
         
         let currentUser = null;
-        let activeUnsub = null;
 
-        signInAnonymously(auth).then(() => {
-            onAuthStateChanged(auth, u => {
-                currentUser = u;
-                // Si hay un ID en la URL, abrirlo tras el auth
-                const g = new URLSearchParams(window.location.search).get('g');
-                if(g && !selectedGame) window.openDetail(g);
-            });
+        const initAuth = async () => {
+            try {
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+                    await signInWithCustomToken(auth, window.__initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) { console.error("Auth error:", error); }
+        };
+
+        initAuth();
+
+        onAuthStateChanged(auth, u => {
+            currentUser = u;
+            const urlParams = new URLSearchParams(window.location.search);
+            const gId = urlParams.get('g');
+            if(gId && !selectedGame) window.openDetail(gId);
+            else if(selectedGame) window.setupFirebaseListeners(selectedGame.id);
         });
 
         window.setupFirebaseListeners = function(gameId) {
-            if(activeUnsub) activeUnsub();
-            activeUnsub = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', `comments_${gameId}`), (snap) => {
+            if(!currentUser) return;
+            const commentsCol = collection(db, 'artifacts', appId, 'public', 'data', `comments_${gameId}`);
+            onSnapshot(commentsCol, (snap) => {
                 const list = document.getElementById('comments-list');
-                const comments = snap.docs.map(d => d.data()).sort((a,b) => (a.createdAt?.seconds||0)-(b.createdAt?.seconds||0));
+                const comments = snap.docs.map(d => d.data()).sort((a,b) => (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
                 list.innerHTML = comments.map(c => `
-                    <div class="p-3 rounded-2xl border border-white/5 bg-[#11141b] shadow-sm ${!darkMode ? 'bg-white border-black/5' : ''}">
-                        <span class="text-[9px] font-black text-blue-500 uppercase block mb-1">${c.userName}</span>
+                    <div class="p-3 rounded-2xl border ${darkMode ? 'border-white/5 bg-[#11141b]' : 'bg-gray-50 border-black/5'}">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[9px] font-black text-blue-500 uppercase">${c.userName || 'Usuario'}</span>
+                            ${c.rating ? `<div class="flex gap-0.5">${Array(5).fill(0).map((_,i) => `<i data-lucide="star" class="w-2 h-2 ${i < c.rating ? 'fill-blue-500 text-blue-500' : 'text-gray-400'}"></i>`).join('')}</div>` : ''}
+                        </div>
                         <p class="text-[10px] leading-relaxed font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}">${c.text}</p>
                     </div>
                 `).join('') || '<p class="text-[9px] text-gray-500 italic text-center py-4">Sin comentarios aún...</p>';
+                if(window.lucide) lucide.createIcons();
+            });
+
+            const ratingsCol = collection(db, 'artifacts', appId, 'public', 'data', `ratings_${gameId}`);
+            onSnapshot(ratingsCol, (snap) => {
+                const ratings = snap.docs.map(d => d.data());
+                const count = ratings.length;
+                const avg = count > 0 ? (ratings.reduce((acc, curr) => acc + curr.value, 0) / count).toFixed(1) : "0.0";
+                document.getElementById('stat-avg').innerText = avg;
+                document.getElementById('stat-count').innerText = `${count} Votos`;
+                const myRating = ratings.find(r => r.userId === currentUser.uid);
+                if(myRating) window.updateStarUI(myRating.value);
             });
         };
 
@@ -356,10 +404,29 @@
             if(!input.value.trim() || !currentUser || !selectedGame) return;
             const text = input.value; input.value = "";
             try {
+                const ratingDocRef = doc(db, 'artifacts', appId, 'public', 'data', `ratings_${selectedGame.id}`, currentUser.uid);
+                const ratingDoc = await getDoc(ratingDocRef);
+                const userRating = ratingDoc.exists() ? ratingDoc.data().value : null;
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', `comments_${selectedGame.id}`), {
-                    text, userId: currentUser.uid, userName: `User_${currentUser.uid.slice(0,5)}`, createdAt: serverTimestamp()
+                    text, userId: currentUser.uid, userName: `User_${currentUser.uid.slice(0,4)}`, rating: userRating, createdAt: serverTimestamp()
                 });
-            } catch(e) { input.value = text; }
+            } catch(e) { console.error(e); }
+        };
+
+        window.setRating = async function(val) {
+            if(!currentUser || !selectedGame) return;
+            try {
+                const ratingDoc = doc(db, 'artifacts', appId, 'public', 'data', `ratings_${selectedGame.id}`, currentUser.uid);
+                await setDoc(ratingDoc, { value: val, userId: currentUser.uid, updatedAt: serverTimestamp() });
+            } catch(e) { console.error(e); }
+        };
+
+        window.updateStarUI = function(val) {
+            const stars = document.querySelectorAll('.star-icon');
+            stars.forEach((s, i) => {
+                if(i < val) s.classList.add('star-active');
+                else s.classList.remove('star-active');
+            });
         };
     </script>
 </body>
