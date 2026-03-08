@@ -1,458 +1,376 @@
-<!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>JoelDroid Mods YT | Catálogo Premium</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --mod-red: #ff3b3b;
-            --update-green: #22c55e;
-            --safe-top: env(safe-area-inset-top);
-            
-            --bg-body: #f3f4f6;
-            --bg-nav: rgba(255, 255, 255, 0.98);
-            --bg-card-odd: #ffffff;
-            --bg-card-even: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border-color: rgba(0, 0, 0, 0.05);
-            --header-bg: rgba(255, 255, 255, 0.5);
-            --modal-bg: #ffffff;
-            --version-green: #16a34a;
-            --shadow: rgba(0, 0, 0, 0.05);
-            
-            /* Colores específicos del resumen del mod */
-            --summary-bg: #eff6ff;
-            --summary-border: #bfdbfe;
-            --summary-text: #1e40af;
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  collection, 
+  onSnapshot, 
+  addDoc, 
+  serverTimestamp,
+  updateDoc
+} from 'firebase/firestore';
+import { Star, MessageCircle, Send, ArrowLeft, Bolt, Youtube, Moon, Sun, ShieldCheck, Rocket, ChevronRight, HardDrive, AlertCircle } from 'lucide-react';
+
+// --- CONFIGURACIÓN FIREBASE ---
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { projectId: 'dummy' };
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'joeldroid-mods-yt';
+
+const gamesData = [
+  {
+    id: "global-truck",
+    name: "Global Truck Online",
+    thumb: "https://play-lh.googleusercontent.com/JJiHxM3IMImgKaROZ3U6yivclo5jxepBfZRShfCoxij7SrY233VKi_sp0YoxiWyHSfttjrgfYAy2vDVtYiaU5dw=w240-h480-rw",
+    version: "V0.0.91",
+    weight: "700 MB",
+    desc: "Dinero infinito, camiones premium desbloqueados y personalización total.",
+    features: ["Dinero Infinito", "Camiones VIP", "Sin Publicidad"]
+  },
+  {
+    id: "bigrigs-sim",
+    name: "Truck Simulator Bigrigs",
+    thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd0ALg5YipsGER2CjBhltvbsAHovUOjx2TzkSEoIAIR0RXgiu2jz-l2JE&s=10",
+    version: "V1.5.7",
+    weight: "1.1 GB",
+    desc: "Simulación realista sin anuncios y con todas las rutas abiertas.",
+    features: ["Full Desbloqueado", "Tanque Infinito", "Rutas Pro"]
+  },
+  {
+    id: "trucker-europe-3",
+    name: "Trucker of Europe 3",
+    thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1rjfLgFxiBAOozVIDrq0X6KmF92Wy56gGoj8e2ZM7Ocbw5_AQK4kpzgc&s=10",
+    version: "V0.43.3",
+    weight: "530 MB",
+    desc: "Nivel máximo de conductor y garajes gratis en toda Europa.",
+    features: ["Monedas Máximas", "Sin Daño", "Garajes Free"]
+  }
+];
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+  const [selectedGame, setSelectedGame] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
+  const [comments, setComments] = useState([]);
+  const [gameStats, setGameStats] = useState({});
+  const [newComment, setNewComment] = useState("");
+  const commentsEndRef = useRef(null);
+
+  // Optimización 1: Autenticación silenciosa y rápida
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
         }
+      } catch (err) {
+        console.warn("Reintentando conexión...");
+      }
+    };
+    initAuth();
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () => unsubscribe();
+  }, []);
 
-        .dark-mode {
-            --bg-body: #0a0c10;
-            --bg-nav: rgba(10, 12, 16, 0.98);
-            --bg-card-odd: #11141b;
-            --bg-card-even: linear-gradient(135deg, #11141b 0%, #0f172a 100%);
-            --text-main: #e5e7eb;
-            --text-muted: #9ca3af;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --header-bg: rgba(255, 255, 255, 0.03);
-            --modal-bg: #11141b;
-            --version-green: #22c55e;
-            --shadow: rgba(0, 0, 0, 0.4);
+  // Optimización 2: Carga perezosa de datos de Firebase (solo cuando el juego se selecciona)
+  useEffect(() => {
+    if (!user || !selectedGame) {
+      setComments([]);
+      return;
+    }
 
-            /* Colores ajustados para modo oscuro */
-            --summary-bg: rgba(59, 130, 246, 0.1);
-            --summary-border: rgba(59, 130, 246, 0.2);
-            --summary-text: #60a5fa;
-        }
-        
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            padding-top: var(--safe-top);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+    const commentsCol = collection(db, 'artifacts', appId, 'public', 'data', `comments_${selectedGame.id}`);
+    const unsubscribeComments = onSnapshot(commentsCol, (snapshot) => {
+      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+      setComments(docs);
+    }, (err) => console.error("Error en comentarios:", err));
 
-        .font-main { font-family: 'Montserrat', sans-serif; }
-        .font-gaming { font-family: 'Chakra Petch', sans-serif; }
+    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'game_stats', selectedGame.id);
+    const unsubscribeStats = onSnapshot(statsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setGameStats(prev => ({ ...prev, [selectedGame.id]: docSnap.data() }));
+      }
+    }, (err) => console.error("Error en stats:", err));
 
-        .glass-nav {
-            background: var(--bg-nav);
-            border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 1px 3px var(--shadow);
-        }
+    return () => {
+      unsubscribeComments();
+      unsubscribeStats();
+    };
+  }, [user, selectedGame]);
 
-        .card-list-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px;
-            margin-bottom: 14px;
-            border-radius: 18px;
-            position: relative;
-            box-shadow: 0 2px 8px var(--shadow);
-        }
+  useEffect(() => {
+    if (commentsEndRef.current) {
+      commentsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [comments]);
 
-        .card-list-item:nth-child(odd) {
-            background: var(--bg-card-odd);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--primary);
-        }
+  const handleRate = async (rating) => {
+    if (!user || !selectedGame) return;
+    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'game_stats', selectedGame.id);
+    try {
+      const snap = await getDoc(statsRef);
+      if (!snap.exists()) {
+        await setDoc(statsRef, { totalRating: rating, count: 1, average: rating });
+      } else {
+        const data = snap.data();
+        const newTotal = (data.totalRating || 0) + rating;
+        const newCount = (data.count || 0) + 1;
+        await updateDoc(statsRef, {
+          totalRating: newTotal,
+          count: newCount,
+          average: Number((newTotal / newCount).toFixed(1))
+        });
+      }
+    } catch (err) { console.error(err); }
+  };
 
-        .card-list-item:nth-child(even) {
-            background: var(--bg-card-even);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid #6366f1;
-        }
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !user || !selectedGame) return;
+    const text = newComment.trim();
+    setNewComment(""); 
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', `comments_${selectedGame.id}`), {
+        text,
+        userId: user.uid,
+        userName: `User_${user.uid.substring(0, 5)}`,
+        createdAt: serverTimestamp()
+      });
+    } catch (err) { 
+      setNewComment(text);
+      console.error(err);
+    }
+  };
 
-        .btn-download {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            white-space: nowrap;
-        }
+  const startDownload = (label) => {
+    setLoadingMsg(label);
+    setLoading(true);
+    setTimeout(() => setLoading(false), 2000); // Velocidad de feedback mejorada
+  };
 
-        .thumb-container {
-            position: relative;
-            flex-shrink: 0;
-            padding-top: 14px;
-        }
+  // Optimización 3: Memoización de estadísticas para evitar re-calculos
+  const currentStats = useMemo(() => 
+    gameStats[selectedGame?.id] || { average: 5.0, count: 0 }, 
+    [gameStats, selectedGame]
+  );
 
-        .game-thumb {
-            width: 85px;
-            height: 85px;
-            object-fit: cover;
-            border-radius: 14px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-
-        .update-tag-top {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--update-green);
-            color: white;
-            font-size: 8px;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 6px;
-            white-space: nowrap;
-            font-family: 'Montserrat', sans-serif;
-            z-index: 10;
-        }
-
-        .mod-tag-overlay {
-            position: absolute;
-            bottom: 4px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--mod-red);
-            color: white;
-            font-size: 8px;
-            font-weight: 900;
-            padding: 2px 6px;
-            border-radius: 5px;
-            white-space: nowrap;
-            box-shadow: 0 2px 6px rgba(255, 59, 59, 0.4);
-            font-family: 'Montserrat', sans-serif;
-            z-index: 10;
-        }
-
-        .version-tag {
-            background: rgba(22, 163, 74, 0.1);
-            color: var(--version-green);
-            font-size: 8px;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(22, 163, 74, 0.2);
-        }
-
-        .theme-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--border-color);
-            color: var(--primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .download-option {
-            background: var(--bg-body);
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            border-radius: 20px;
-            text-align: left;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .download-option:active {
-            transform: scale(0.96);
-            background: var(--border-color);
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .dot-green { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
-        .dot-blue { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
-
-        .alert-box {
-            background: #fffbeb;
-            border: 1px solid #fef3c7;
-            padding: 10px;
-            border-radius: 14px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .dark-mode .alert-box {
-            background: rgba(251, 191, 36, 0.05);
-            border-color: rgba(251, 191, 36, 0.1);
-        }
-
-        /* Estilos del resumen corregidos para visibilidad */
-        .summary-container {
-            background-color: var(--summary-bg);
-            border: 1px solid var(--summary-border);
-            border-radius: 0.75rem;
-            padding: 0.75rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .summary-item {
-            color: var(--summary-text);
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.25rem;
-        }
-    </style>
-</head>
-<body class="antialiased">
-
-    <nav class="sticky top-0 z-50 glass-nav py-3 px-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg">
-                    <i class="fas fa-bolt text-white text-xs"></i>
-                </div>
-                <h1 class="text-base font-main font-black tracking-tighter uppercase text-blue-600 dark:text-blue-500">JOELDROID</h1>
+  return (
+    <div className={`${darkMode ? 'bg-[#0a0c10] text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen font-sans transition-colors duration-200`}>
+      {/* NAVBAR */}
+      <nav className={`sticky top-0 z-50 backdrop-blur-md border-b py-3 px-4 ${darkMode ? 'bg-[#0a0c10]/80 border-white/5' : 'bg-white/80 border-black/5'}`}>
+        <div className="max-w-md mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <Bolt size={16} className="text-white" />
             </div>
-            <div class="flex items-center gap-3">
-                <button onclick="toggleTheme()" class="theme-btn" id="theme-icon-container">
-                    <i class="fas fa-moon" id="theme-icon"></i>
+            <h1 className="text-sm font-black tracking-tighter uppercase text-blue-600">JOELDROID</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <a href="https://youtube.com/@joeldroidyt" target="_blank" rel="noreferrer" className="bg-red-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase flex items-center gap-1 hover:bg-red-700 transition-colors">
+              <Youtube size={12} /> SUSCRIBIRSE
+            </a>
+            <button 
+              onClick={() => setDarkMode(!darkMode)} 
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${darkMode ? 'bg-white/5 text-blue-400 hover:bg-white/10' : 'bg-gray-200 text-blue-600 hover:bg-gray-300'}`}
+            >
+              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <main className="max-w-md mx-auto px-4 py-6">
+        {/* BANNER */}
+        <div className="mb-6 p-5 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-800 text-white shadow-xl relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="font-black text-xl uppercase leading-none mb-1">Mods Exclusivos</h2>
+            <p className="text-[10px] opacity-70 uppercase tracking-[0.2em] font-bold">JoelDroid Mods YT • Premium</p>
+          </div>
+          <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+            <Bolt size={120} />
+          </div>
+        </div>
+
+        {/* LISTA DE JUEGOS - DISEÑO ORIGINAL PRESERVADO */}
+        <div className="space-y-4">
+          {gamesData.map((game) => (
+            <div key={game.id} className={`flex gap-3 p-3 rounded-[24px] border transition-all shadow-md ${darkMode ? 'bg-[#11141b] border-white/5' : 'bg-white border-black/5'}`}>
+              <div className="relative flex-shrink-0">
+                <img src={game.thumb} className="w-[85px] h-[85px] object-cover rounded-2xl" loading="lazy" alt={game.name} />
+                <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded shadow-lg border border-white/20">UPDATE</span>
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[7px] font-black px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg border border-white/10 uppercase">MOD APK</span>
+              </div>
+              <div className="flex-grow min-w-0 flex flex-col justify-between">
+                <div className="flex justify-between items-start">
+                  <h3 className={`text-[12px] font-black uppercase truncate pr-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{game.name}</h3>
+                  <span className="text-[8px] font-black bg-green-500/10 text-green-500 px-2 py-0.5 rounded border border-green-500/20">{game.version}</span>
+                </div>
+                <p className={`text-[10px] leading-tight line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{game.desc}</p>
+                <button 
+                  onClick={() => setSelectedGame(game)}
+                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-transform mt-2"
+                >
+                  DOWNLOAD MOD APK
                 </button>
-                <a href="https://youtube.com/@joeldroidyt" target="_blank" class="text-[10px] font-bold text-blue-600 uppercase flex items-center gap-1">
-                    YouTube <i class="fab fa-youtube text-xs"></i>
-                </a>
+              </div>
             </div>
+          ))}
         </div>
-    </nav>
+      </main>
 
-    <header class="py-3 px-4" style="background-color: var(--header-bg); border-bottom: 1px solid var(--border-color);">
-        <div class="flex items-center justify-between container mx-auto">
-            <h2 class="text-[10px] font-gaming font-bold text-blue-600 dark:text-blue-500 uppercase tracking-widest">Catálogo de Mods</h2>
-            <span class="text-[10px] font-main font-black text-blue-600 dark:text-blue-500">07/03/2026</span>
-        </div>
-    </header>
-
-    <main class="container mx-auto px-4 py-4">
-        <div id="game-list" class="flex flex-col"></div>
-        <div class="mt-8 mb-12 text-center">
-            <p class="text-[9px] font-gaming text-gray-400 dark:text-gray-600 uppercase tracking-[0.3em]">JoelDroid Mods YT • © 2026</p>
-        </div>
-    </main>
-
-    <!-- Modal: Menú de Juego -->
-    <div id="game-menu-overlay" class="fixed inset-0 hidden z-[1000] bg-black/80 backdrop-blur-md items-center justify-center p-6">
-        <div class="bg-[var(--modal-bg)] rounded-[32px] w-full max-w-[340px] border border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div class="relative h-24 bg-blue-600 flex items-end p-4">
-                <div class="absolute top-4 right-4">
-                    <button onclick="closeMenu()" class="text-white/50 hover:text-white"><i class="fas fa-times text-lg"></i></button>
-                </div>
-                <div class="flex items-center gap-3">
-                    <img id="menu-img" src="" class="w-14 h-14 rounded-xl border-2 border-white/20 shadow-lg object-cover">
-                    <div class="text-left">
-                        <h3 id="menu-title" class="text-white font-main font-black uppercase text-sm leading-tight">JUEGO</h3>
-                        <span id="menu-version" class="text-[9px] bg-white/20 text-white px-2 py-0.5 rounded font-bold">V.0.0.0</span>
-                    </div>
-                </div>
+      {/* VISTA DETALLE RESTAURADA AL 100% */}
+      {selectedGame && (
+        <div className={`fixed inset-0 z-[100] overflow-y-auto animate-in fade-in duration-200 ${darkMode ? 'bg-[#0a0c10]' : 'bg-white'}`}>
+          <div className="max-w-md mx-auto min-h-screen flex flex-col">
+            <div className="relative h-[220px] flex flex-col items-center justify-center p-6 text-center">
+              <div className={`absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent ${darkMode ? 'opacity-100' : 'opacity-40'}`}></div>
+              <button onClick={() => setSelectedGame(null)} className={`absolute top-6 left-6 w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-sm ${darkMode ? 'bg-white/5 text-white hover:bg-white/10' : 'bg-gray-100 text-gray-900 hover:bg-gray-200'}`}>
+                <ArrowLeft size={18} />
+              </button>
+              <div className="relative mb-3">
+                <img src={selectedGame.thumb} className={`w-24 h-24 rounded-[32px] shadow-2xl border-4 object-cover z-10 relative ${darkMode ? 'border-white/10' : 'border-white'}`} alt="" />
+                <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-20 scale-150"></div>
+              </div>
+              <h3 className={`font-black text-xl uppercase mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{selectedGame.name}</h3>
+              <span className="text-[9px] font-black bg-blue-600 text-white px-4 py-1 rounded-full shadow-lg tracking-wider uppercase">VERSION {selectedGame.version}</span>
             </div>
 
-            <div class="p-5">
-                <!-- Resumen del Mod Corregido -->
-                <div class="summary-container">
-                    <h4 class="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase mb-2">Resumen del Mod:</h4>
-                    <div id="menu-features" class="space-y-1">
-                        <!-- Generado dinámicamente -->
+            <div className="px-6 space-y-5 pb-10">
+              <div className={`p-4 rounded-3xl border ${darkMode ? 'bg-blue-500/5 border-blue-500/10 text-blue-400' : 'bg-blue-50 border-blue-100 text-blue-600'}`}>
+                <h4 className="text-[10px] font-black uppercase mb-3 flex items-center gap-2"><Rocket size={12}/> Resumen del Mod:</h4>
+                <div className="grid grid-cols-1 gap-2 mb-4">
+                  {selectedGame.features.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[10px] font-bold uppercase">
+                      <ShieldCheck size={12} /> {f}
                     </div>
+                  ))}
                 </div>
-
-                <!-- Comunicado Importante -->
-                <div class="alert-box">
-                    <div class="w-8 h-8 flex-shrink-0 bg-amber-100 dark:bg-amber-500/20 rounded-full flex items-center justify-center text-amber-600">
-                        <i class="fas fa-triangle-exclamation text-xs"></i>
-                    </div>
-                    <p class="text-[9px] font-bold text-amber-700 dark:text-amber-500 uppercase leading-tight">
-                        Si tienes problemas con el enlace del MOD 1 usa el MOD 2
-                    </p>
-                </div>
-
-                <h4 class="text-[10px] font-gaming font-bold text-gray-400 uppercase tracking-widest mb-3 text-left">Opciones de Descarga:</h4>
                 
-                <div class="space-y-3">
-                    <div onclick="startDownloadSimulation('DOWNLOAD MOD 1')" class="download-option">
-                        <div class="flex justify-between items-center mb-1">
-                            <div class="flex items-center gap-2">
-                                <div class="status-dot dot-green"></div>
-                                <span class="text-[11px] font-black uppercase tracking-tighter">DOWNLOAD MOD 1</span>
-                            </div>
-                            <i class="fas fa-download text-blue-500 text-xs"></i>
-                        </div>
-                        <p class="text-[9px] text-gray-400 font-medium">Servidor Principal • Mediafire</p>
-                    </div>
+                <div className={`pt-3 border-t flex items-center justify-between ${darkMode ? 'border-amber-500/20' : 'border-amber-200'}`}>
+                  <div className="flex items-center gap-2 text-amber-500">
+                    <HardDrive size={12} />
+                    <span className="text-[10px] font-black uppercase">Peso Real del Juego:</span>
+                  </div>
+                  <span className={`text-[10px] font-black px-3 py-1 rounded-lg ${darkMode ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-amber-100 text-amber-700 border border-amber-200 shadow-sm'}`}>
+                    {selectedGame.weight}
+                  </span>
+                </div>
+              </div>
 
-                    <div onclick="startDownloadSimulation('DOWNLOAD MOD 2')" class="download-option">
-                        <div class="flex justify-between items-center mb-1">
-                            <div class="flex items-center gap-2">
-                                <div class="status-dot dot-blue"></div>
-                                <span class="text-[11px] font-black uppercase tracking-tighter">DOWNLOAD MOD 2</span>
-                            </div>
-                            <i class="fas fa-download text-blue-500 text-xs"></i>
-                        </div>
-                        <p class="text-[9px] text-gray-400 font-medium">Servidor Principal • Mediafire</p>
+              <div className={`p-4 rounded-2xl border flex gap-3 items-start ${darkMode ? 'bg-white/5 border-white/5' : 'bg-gray-100 border-black/5'}`}>
+                <AlertCircle size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <p className={`text-[9px] font-bold uppercase leading-relaxed ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Si tienes problemas con la <span className="text-blue-500">DESCARGA DEL MOD 1</span> utiliza la opción <span className="text-blue-500">2 DE DESCARGA MOD 2</span> para evitar errores.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button onClick={() => startDownload("MOD 1")} className={`w-full flex items-center justify-between p-4 rounded-3xl border transition-all active:scale-[0.98] ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]"></div>
+                    <div className="text-left">
+                      <span className={`block text-xs font-black uppercase ${darkMode ? 'text-white' : 'text-gray-800'}`}>DOWNLOAD MOD 1</span>
+                      <span className="text-[8px] text-gray-500 font-bold uppercase">Mediafire • Servidor Principal</span>
                     </div>
+                  </div>
+                  <ChevronRight size={16} className="text-blue-500" />
+                </button>
+                <button onClick={() => startDownload("MOD 2")} className={`w-full flex items-center justify-between p-4 rounded-3xl border transition-all active:scale-[0.98] ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-gray-50 border-gray-100 hover:bg-gray-100'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]"></div>
+                    <div className="text-left">
+                      <span className={`block text-xs font-black uppercase ${darkMode ? 'text-white' : 'text-gray-800'}`}>DOWNLOAD MOD 2</span>
+                      <span className="text-[8px] text-gray-500 font-bold uppercase">Mediafire • Servidor Espejo</span>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-blue-500" />
+                </button>
+              </div>
+
+              <div className={`p-5 rounded-3xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-gray-50 border-gray-100'}`}>
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <span className="text-[9px] font-black text-gray-500 uppercase block mb-1">Puntuación</span>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <Star key={star} size={14} onClick={() => handleRate(star)} className={`cursor-pointer transition-transform hover:scale-110 ${star <= Math.round(currentStats.average) ? 'fill-amber-500 text-amber-500 drop-shadow-sm' : 'text-gray-400'}`} />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-black leading-none text-blue-500">{currentStats.average}</div>
+                    <span className="text-[8px] font-bold text-gray-400 uppercase">{currentStats.count || 0} Votos</span>
+                  </div>
                 </div>
 
-                <p class="mt-6 text-[8px] text-gray-400 uppercase font-bold tracking-[0.2em] text-center">JoelDroid Mods YT • Verificado</p>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle size={14} className="text-blue-500" />
+                    <span className={`text-[10px] font-black uppercase tracking-wider ${darkMode ? 'text-white' : 'text-gray-700'}`}>Comentarios ({comments.length})</span>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                    {comments.map(c => (
+                      <div key={c.id} className={`p-3 rounded-2xl border shadow-sm ${darkMode ? 'bg-[#11141b] border-white/5' : 'bg-white border-black/5'}`}>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-[9px] font-black text-blue-500 uppercase">{c.userName}</span>
+                        </div>
+                        <p className={`text-[10px] leading-relaxed font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{c.text}</p>
+                      </div>
+                    ))}
+                    <div ref={commentsEndRef} />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Comentar..."
+                      className={`flex-grow text-[10px] p-3 rounded-2xl outline-none border transition-colors ${darkMode ? 'bg-[#0a0c10] border-white/10 focus:border-blue-500 text-white' : 'bg-white border-black/10 focus:border-blue-500 text-gray-900'}`}
+                    />
+                    <button onClick={handleAddComment} disabled={!newComment.trim()} className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all ${newComment.trim() ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20 active:scale-90' : 'bg-gray-500/20 text-gray-400'}`}>
+                      <Send size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <p className="text-center text-[8px] font-black uppercase tracking-[0.4em] opacity-30 py-4">JoelDroid Mods • 2019-2026</p>
             </div>
+          </div>
         </div>
-    </div>
+      )}
 
-    <!-- Pantalla de Proceso -->
-    <div id="loading-overlay" class="fixed inset-0 hidden z-[1100] bg-black/95 flex flex-col items-center justify-center p-10 text-center">
-        <div class="relative w-20 h-20 mb-6">
-            <div class="absolute inset-0 border-4 border-blue-600/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <div class="absolute inset-0 flex items-center justify-center">
-                <i class="fas fa-shield-halved text-blue-500 text-xl"></i>
+      {/* OVERLAY DE CARGA */}
+      {loading && (
+        <div className={`fixed inset-0 z-[1000] backdrop-blur-md flex flex-col items-center justify-center p-10 animate-in fade-in duration-300 ${darkMode ? 'bg-black/80' : 'bg-white/80'}`}>
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+          <h3 className={`font-black uppercase text-[10px] tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}>Descargando {loadingMsg}</h3>
+          <p className="text-blue-600 text-[8px] font-black animate-pulse mt-2 uppercase">Conexión Premium Establecida</p>
+        </div>
+      )}
+
+      <footer className={`py-10 px-4 border-t text-center ${darkMode ? 'border-white/5 bg-[#0a0c10]' : 'border-black/5 bg-gray-100'}`}>
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className={`w-6 h-6 rounded-md flex items-center justify-center ${darkMode ? 'bg-blue-600/10' : 'bg-blue-600'}`}>
+              <Bolt size={12} className={darkMode ? 'text-blue-600' : 'text-white'} />
             </div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">JOELDROID MODS</span>
+          </div>
+          <p className="text-[9px] font-bold text-gray-500 uppercase max-w-[200px] leading-relaxed">
+            &copy; 2019 - 2026 JOELDROID YT. TODOS LOS DERECHOS RESERVADOS.
+          </p>
         </div>
-        <h3 id="loading-text" class="text-white font-main font-black uppercase text-xs mb-2 tracking-widest">Procesando</h3>
-        <p id="loading-subtext" class="text-blue-500 text-[10px] font-gaming animate-pulse">VERIFICANDO...</p>
+      </footer>
     </div>
-
-    <script>
-        const games = [
-            {
-                id: 1,
-                name: "Global Truck Online",
-                thumb: "https://play-lh.googleusercontent.com/JJiHxM3IMImgKaROZ3U6yivclo5jxepBfZRShfCoxij7SrY233VKi_sp0YoxiWyHSfttjrgfYAy2vDVtYiaU5dw=w240-h480-rw",
-                version: "V0.0.91",
-                desc: "Dinero infinito, camiones premium desbloqueados y personalización total.",
-                features: ["Dinero Infinito", "Camiones VIP", "Sin Publicidad"]
-            },
-            {
-                id: 2,
-                name: "Truck Sim Bigrigs",
-                thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd0ALg5YipsGER2CjBhltvbsAHovUOjx2TzkSEoIAIR0RXgiu2jz-l2JE&s=10",
-                version: "V1.5.7",
-                desc: "Simulación realista sin anuncios y con todas las rutas abiertas.",
-                features: ["Full Desbloqueado", "Tanque Infinito", "Rutas Pro"]
-            },
-            {
-                id: 3,
-                name: "Trucker of Europe 3",
-                thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1rjfLgFxiBAOozVIDrq0X6KmF92Wy56gGoj8e2ZM7Ocbw5_AQK4kpzgc&s=10",
-                version: "V0.7.64",
-                desc: "Nivel máximo de conductor y garajes gratis en toda Europa.",
-                features: ["Monedas Máximas", "Sin Daño", "Garajes Free"]
-            }
-        ];
-
-        function renderGames() {
-            const container = document.getElementById('game-list');
-            container.innerHTML = games.map(game => `
-                <div class="card-list-item">
-                    <div class="thumb-container">
-                        <div class="update-tag-top">UPDATE</div>
-                        <img src="${game.thumb}" alt="${game.name}" class="game-thumb">
-                        <div class="mod-tag-overlay">MOD APK</div>
-                    </div>
-                    <div class="flex-grow min-w-0 flex flex-col justify-between py-1">
-                        <div>
-                            <div class="flex justify-between items-start mb-1">
-                                <h4 class="text-[12px] font-main font-black uppercase truncate">${game.name}</h4>
-                                <span class="version-tag">${game.version}</span>
-                            </div>
-                            <p class="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-tight mb-2">${game.desc}</p>
-                        </div>
-                        <button onclick="openMenu(${game.id})" class="btn-download w-full py-2.5 rounded-xl text-white font-main font-black text-[9px] uppercase shadow-md active:scale-95 transition-all">
-                            DOWNLOAD MOD APK
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function openMenu(id) {
-            const game = games.find(g => g.id === id);
-            document.getElementById('menu-title').innerText = game.name;
-            document.getElementById('menu-img').src = game.thumb;
-            document.getElementById('menu-version').innerText = game.version;
-            
-            const featuresBox = document.getElementById('menu-features');
-            featuresBox.innerHTML = game.features.map(f => `
-                <div class="summary-item">
-                    <i class="fas fa-bolt text-[8px]"></i> ${f}
-                </div>
-            `).join('');
-
-            document.getElementById('game-menu-overlay').classList.remove('hidden');
-            document.getElementById('game-menu-overlay').classList.add('flex');
-        }
-
-        function closeMenu() {
-            document.getElementById('game-menu-overlay').classList.add('hidden');
-            document.getElementById('game-menu-overlay').classList.remove('flex');
-        }
-
-        function startDownloadSimulation(option) {
-            closeMenu();
-            const overlay = document.getElementById('loading-overlay');
-            const subtext = document.getElementById('loading-subtext');
-            const text = document.getElementById('loading-text');
-            
-            text.innerText = `Preparando ${option}`;
-            overlay.classList.remove('hidden');
-            
-            setTimeout(() => { subtext.innerText = "ACCEDIENDO A MEDIAFIRE..."; }, 1000);
-            setTimeout(() => { subtext.innerText = "¡ARCHIVO LISTO!"; }, 2500);
-            setTimeout(() => { overlay.classList.add('hidden'); }, 3500);
-        }
-
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('theme-icon');
-            body.classList.toggle('dark-mode');
-            const isDark = body.classList.contains('dark-mode');
-            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        }
-
-        window.onload = () => {
-            renderGames();
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.body.classList.add('dark-mode');
-                document.getElementById('theme-icon').className = 'fas fa-sun';
-            }
-        };
-    </script>
-</body>
-</html>
+  );
+}
