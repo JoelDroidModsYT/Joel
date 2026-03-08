@@ -69,7 +69,6 @@
             min-height: 100vh;
         }
 
-        /* FORMAS ARITMÉTICAS */
         .neon-background, .neon-background-overlay {
             position: fixed;
             top: 0;
@@ -79,11 +78,6 @@
             z-index: -1;
             pointer-events: none;
             overflow: hidden;
-        }
-
-        .neon-background-overlay {
-            z-index: 0;
-            position: absolute;
         }
 
         .neon-shape {
@@ -170,14 +164,43 @@
             right: -4px;
         }
 
+        .neon-search {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: var(--neon-shadow);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .neon-search:focus-within {
+            border-color: var(--brand-color);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .neon-filter-btn {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: var(--neon-shadow);
+            color: var(--text-muted);
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .neon-filter-btn.active {
+            border-color: var(--brand-color);
+            color: var(--brand-color);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
         #detail-overlay { 
             background-color: var(--overlay-bg); 
             color: var(--text-main); 
-        }
-
-        .detail-content-wrapper {
-            position: relative;
-            z-index: 10;
         }
 
         #detail-name {
@@ -202,16 +225,6 @@
             border-radius: 12px;
         }
 
-        .btn-subtext {
-            font-size: 8px;
-            font-weight: 700;
-            opacity: 0.8;
-            display: block;
-            margin-top: -2px;
-            letter-spacing: 0.05em;
-        }
-
-        /* Toast de notificación */
         #toast {
             position: fixed;
             bottom: 30px;
@@ -225,11 +238,25 @@
             font-size: 12px;
             text-transform: uppercase;
             z-index: 200;
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         #toast.show { transform: translateX(-50%) translateY(0); }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Sticky Header for Detail View */
+        .sticky-detail-header {
+            position: sticky;
+            top: 0;
+            z-index: 110;
+            background: var(--overlay-bg);
+            border-bottom: 2px solid var(--border-color);
+            box-shadow: var(--neon-shadow);
+            padding: 0.75rem 1.5rem;
+        }
     </style>
 </head>
 <body class="flex flex-col">
@@ -237,6 +264,7 @@
     <div class="neon-background" id="neon-bg-main"></div>
     <div id="toast">Enlace copiado</div>
 
+    <!-- NAVBAR PRINCIPAL -->
     <nav id="main-nav" class="sticky top-0 z-50 py-4 px-6">
         <div class="max-w-md mx-auto flex justify-between items-center">
             <div onclick="window.location.hash = ''" class="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform">
@@ -256,13 +284,27 @@
         </div>
     </nav>
 
+    <!-- VISTA INICIAL -->
     <main id="home-view" class="max-w-md mx-auto px-5 py-8 flex-grow w-full z-10">
-        <div id="home-banner" class="mb-10 p-8 rounded-[40px] bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-2xl relative overflow-hidden border-2 border-blue-400/30">
+        <div id="home-banner" class="mb-6 p-8 rounded-[40px] bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-2xl relative overflow-hidden border-2 border-blue-400/30">
             <div class="relative z-10">
                 <h2 class="font-black text-3xl uppercase leading-none mb-2 tracking-tighter">PREMIUM APKS</h2>
                 <p class="text-[11px] opacity-90 font-medium">Contenido verificado por JoelDroid.</p>
             </div>
             <i data-lucide="layout-grid" class="absolute -right-12 -bottom-12 opacity-20 w-48 h-48 rotate-12"></i>
+        </div>
+
+        <div class="mb-6 neon-search p-1 flex items-center gap-3">
+            <div class="w-10 h-10 flex items-center justify-center text-blue-500 ml-2">
+                <i data-lucide="search" class="w-5 h-5"></i>
+            </div>
+            <input type="text" id="game-search" placeholder="BUSCAR JUEGO..." class="bg-transparent border-none outline-none text-[11px] font-black tracking-widest text-current flex-grow placeholder:opacity-30 uppercase">
+        </div>
+
+        <div class="flex justify-between items-center gap-2 mb-10 overflow-x-auto scrollbar-hide pb-2">
+            <button onclick="window.filterGames('all')" id="btn-all" class="neon-filter-btn active flex-1 whitespace-nowrap">TODOS</button>
+            <button onclick="window.filterGames('updated')" id="btn-updated" class="neon-filter-btn flex-1 whitespace-nowrap">ACTUALIZADOS</button>
+            <button onclick="window.filterGames('popular')" id="btn-popular" class="neon-filter-btn flex-1 whitespace-nowrap">POPULAR</button>
         </div>
 
         <div id="game-list" class="space-y-8"></div>
@@ -280,24 +322,40 @@
     <div id="detail-overlay" class="fixed inset-0 z-[100] overflow-y-auto hidden">
         <div class="neon-background-overlay" id="neon-bg-overlay"></div>
         
-        <div class="max-w-md mx-auto min-h-screen flex flex-col detail-content-wrapper">
-            <div class="relative h-[320px] flex flex-col items-center justify-center p-8 text-center">
-                <div class="absolute inset-0 bg-gradient-to-b from-blue-600/30 to-transparent"></div>
-                
-                <!-- Botón Volver -->
-                <button onclick="window.location.hash = ''" class="absolute top-8 left-8 w-12 h-12 rounded-2xl flex items-center justify-center z-50 bg-blue-600 text-white border-2 border-blue-400 shadow-xl active:scale-90 transition-transform">
-                    <i data-lucide="chevron-left" class="w-7 h-7"></i>
+        <div class="max-w-md mx-auto min-h-screen flex flex-col relative z-10">
+            <!-- HEADER STICKY CORREGIDO -->
+            <div class="sticky-detail-header flex justify-between items-center gap-4">
+                <!-- Botón Atrás -->
+                <button onclick="window.location.hash = ''" class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 text-white shadow-lg active:scale-90 transition-transform">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
                 </button>
 
-                <!-- Botón Compartir -->
-                <button onclick="window.shareGame()" class="absolute top-8 right-8 w-12 h-12 rounded-2xl flex items-center justify-center z-50 bg-blue-500/20 text-blue-500 border-2 border-blue-500/30 backdrop-blur-md shadow-xl active:scale-90 transition-transform">
-                    <i data-lucide="share-2" class="w-6 h-6"></i>
-                </button>
-                
-                <div class="relative mt-4">
-                    <img id="detail-thumb" src="" class="w-36 h-36 rounded-[50px] shadow-2xl border-4 border-white/20 object-cover relative z-10">
-                    <div class="absolute inset-0 bg-blue-500 blur-[60px] opacity-40 scale-150"></div>
+                <!-- Logo y Título Central (Click para inicio) -->
+                <div onclick="window.location.hash = ''" class="flex items-center gap-2 cursor-pointer active:opacity-70 transition-opacity">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i data-lucide="zap" class="w-4 h-4 text-white fill-current"></i>
+                    </div>
+                    <div class="text-center">
+                        <h1 class="brand-text text-sm font-black tracking-tighter uppercase leading-none">JOELDROID</h1>
+                        <span class="text-[7px] font-bold text-blue-500 tracking-[0.2em] uppercase opacity-80 block">MODS YT</span>
+                    </div>
                 </div>
+
+                <!-- Botón Compartir -->
+                <button onclick="window.shareGame()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/20 text-blue-500 border border-blue-500/30 active:scale-90 transition-transform">
+                    <i data-lucide="share-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="relative min-h-[300px] flex flex-col items-center justify-center p-8 text-center">
+                <div class="absolute inset-0 bg-gradient-to-b from-blue-600/10 to-transparent"></div>
+                
+                <!-- ICONO DEL JUEGO -->
+                <div class="relative mt-4">
+                    <img id="detail-thumb" src="" class="w-32 h-32 rounded-[45px] shadow-2xl border-4 border-white/20 object-cover relative z-10">
+                    <div class="absolute inset-0 bg-blue-500 blur-[50px] opacity-40 scale-150"></div>
+                </div>
+
                 <h3 id="detail-name" class="font-black text-2xl uppercase mt-6 mb-2 tracking-tight drop-shadow-lg"></h3>
                 <div class="flex gap-2">
                     <span id="detail-version" class="text-[9px] font-black bg-green-600 text-white px-4 py-1.5 rounded-xl shadow-lg tracking-widest uppercase"></span>
@@ -306,6 +364,7 @@
             </div>
 
             <div class="px-8 space-y-6 pb-16">
+                <!-- INFO DEL MOD -->
                 <div class="box-premium p-8 rounded-[40px]">
                     <h4 class="text-[12px] font-black uppercase mb-6 flex items-center gap-2 text-blue-600">
                         <i data-lucide="cpu" class="w-5 h-5"></i> INFO DEL MOD
@@ -313,10 +372,9 @@
                     <div id="detail-features" class="space-y-4"></div>
                 </div>
 
-                <!-- AVISO DE DESCARGA -->
                 <div class="warning-box p-4 flex gap-3 items-start">
                     <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0"></i>
-                    <p>Si tienes problemas con la descarga del MOD 1 usa el enlace del MOD 2 haci usted tener una descarga segura.</p>
+                    <p>Si tienes problemas con la descarga del MOD 1 usa el enlace del MOD 2 para asegurar una descarga exitosa.</p>
                 </div>
 
                 <div class="space-y-4">
@@ -325,7 +383,7 @@
                             <i data-lucide="download-cloud" class="w-6 h-6"></i>
                             <div class="text-left">
                                 <span class="font-black uppercase tracking-tight block">DOWNLOAD MOD 1</span>
-                                <span class="btn-subtext">Descarga - Mediafire</span>
+                                <span class="text-[8px] font-bold opacity-80 mt-[-2px] block tracking-widest uppercase">Mediafire</span>
                             </div>
                         </div>
                         <i data-lucide="arrow-right" class="w-5 h-5"></i>
@@ -336,7 +394,7 @@
                             <i data-lucide="download-cloud" class="w-6 h-6"></i>
                             <div class="text-left">
                                 <span class="font-black uppercase tracking-tight block">DOWNLOAD MOD 2</span>
-                                <span class="btn-subtext">Descarga - Mediafire</span>
+                                <span class="text-[8px] font-bold opacity-80 mt-[-2px] block tracking-widest uppercase">Mediafire</span>
                             </div>
                         </div>
                         <i data-lucide="arrow-right" class="w-5 h-5"></i>
@@ -355,7 +413,8 @@
                 version: "V0.9.1", 
                 weight: "700 MB", 
                 shortDesc: "Simulador de camiones con multijugador y físicas reales.", 
-                features: ["Dinero Infinito", "Garaje Desbloqueado", "Anti-Ban"] 
+                features: ["Dinero Infinito", "Garaje Desbloqueado", "Anti-Ban"],
+                tags: ["updated", "popular"]
             },
             { 
                 id: "trucker-europe-3", 
@@ -364,7 +423,8 @@
                 version: "V0.43.3", 
                 weight: "530 MB", 
                 shortDesc: "La mejor experiencia de transporte pesado en Europa.", 
-                features: ["Free Shopping", "Combustible Infinito", "VIP Unlocked"] 
+                features: ["Free Shopping", "Combustible Infinito", "VIP Unlocked"],
+                tags: ["updated"]
             },
             { 
                 id: "bigrigs-sim", 
@@ -373,13 +433,15 @@
                 version: "V1.5.7", 
                 weight: "1.1 GB", 
                 shortDesc: "Domina las carreteras americanas con camiones potentes.", 
-                features: ["Todo Desbloqueado", "No Damage", "Premium Trucks"] 
+                features: ["Todo Desbloqueado", "No Damage", "Premium Trucks"],
+                tags: ["popular"]
             }
         ];
 
         let isDarkMode = true;
+        let activeFilter = 'all';
+        let searchQuery = '';
 
-        // Rutas y Navegación
         window.onhashchange = function() {
             const hash = window.location.hash.substring(1);
             if (hash) {
@@ -388,12 +450,6 @@
                 window.goToHome();
             }
         };
-
-        function checkAutoTheme() {
-            const hour = new Date().getHours();
-            const isDayTime = hour >= 6 && hour < 18;
-            setTheme(!isDayTime);
-        }
 
         function setTheme(dark) {
             isDarkMode = dark;
@@ -431,18 +487,29 @@
 
         window.renderGames = function() {
             const container = document.getElementById('game-list');
-            container.innerHTML = gamesData.map(game => `
-                <div class="game-card flex gap-5 p-5 rounded-[38px]">
+            const filtered = gamesData.filter(game => {
+                const matchesSearch = game.name.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesFilter = activeFilter === 'all' || game.tags.includes(activeFilter);
+                return matchesSearch && matchesFilter;
+            });
+
+            if(filtered.length === 0) {
+                container.innerHTML = '<p class="text-center opacity-40 font-black py-20 uppercase tracking-[0.2em] text-[10px]">Sin resultados</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(game => `
+                <div class="game-card flex gap-5 p-5 rounded-[38px] animate-in fade-in zoom-in duration-300">
                     <div class="shrink-0 relative w-24 h-24">
                         <img src="${game.thumb}" class="w-full h-full object-cover rounded-[30px] border-2 border-white/10 shadow-lg relative z-10">
                         <div class="update-badge">UPDATE</div>
                         <div class="mod-badge">MOD APK</div>
                     </div>
                     <div class="flex-grow flex flex-col justify-center min-w-0">
-                        <h3 class="game-title text-[15px] uppercase truncate font-black tracking-tighter" style="color: var(--text-title)">${game.name}</h3>
+                        <h3 class="text-[15px] uppercase truncate font-black tracking-tighter" style="color: var(--text-title)">${game.name}</h3>
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-[9px] font-black text-green-500">${game.version}</span>
-                            <span class="text-[9px] font-black text-blue-500 uppercase">• PESO: ${game.weight}</span>
+                            <span class="text-[9px] font-black text-blue-500 uppercase">• ${game.weight}</span>
                         </div>
                         <p class="text-[11px] line-clamp-2 opacity-70" style="color: var(--text-muted)">${game.shortDesc}</p>
                         <button onclick="window.location.hash = '${game.id}'" class="mt-4 w-full btn-download-premium py-2.5 rounded-2xl text-[9px] tracking-widest active:scale-95 transition-all">
@@ -454,12 +521,22 @@
             if(window.lucide) lucide.createIcons();
         };
 
+        window.filterGames = function(filter) {
+            activeFilter = filter;
+            document.querySelectorAll('.neon-filter-btn').forEach(btn => btn.classList.remove('active'));
+            const filterBtn = document.getElementById('btn-' + filter);
+            if(filterBtn) filterBtn.classList.add('active');
+            window.renderGames();
+        };
+
+        document.getElementById('game-search').addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            window.renderGames();
+        });
+
         window.openDetailUI = function(id) {
             const game = gamesData.find(g => g.id === id);
-            if (!game) {
-                window.location.hash = '';
-                return;
-            }
+            if (!game) return;
 
             document.getElementById('detail-name').innerText = game.name;
             document.getElementById('detail-thumb').src = game.thumb;
@@ -485,22 +562,15 @@
         };
 
         window.shareGame = function() {
-            const url = window.location.href;
-            
-            // Método robusto de copiado
             const textArea = document.createElement("textarea");
-            textArea.value = url;
+            textArea.value = window.location.href;
             document.body.appendChild(textArea);
             textArea.select();
-            try {
-                document.execCommand('copy');
-                const toast = document.getElementById('toast');
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 2000);
-            } catch (err) {
-                console.error('Error al copiar', err);
-            }
+            document.execCommand('copy');
             document.body.removeChild(textArea);
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
         };
 
         window.toggleTheme = function() {
@@ -508,13 +578,11 @@
         };
 
         window.onload = () => { 
-            checkAutoTheme();
+            const hour = new Date().getHours();
+            setTheme(!(hour >= 6 && hour < 18));
             populateNeonBackground('neon-bg-main', 25);
             window.renderGames(); 
-            // Cargar por hash al inicio si existe
-            if(window.location.hash) {
-                window.openDetailUI(window.location.hash.substring(1));
-            }
+            if(window.location.hash) window.openDetailUI(window.location.hash.substring(1));
         };
     </script>
 </body>
