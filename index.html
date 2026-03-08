@@ -51,6 +51,16 @@
         .download-btn-premium:active {
             transform: scale(0.97);
         }
+
+        /* Animación suave para el overlay */
+        #detail-overlay {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #detail-overlay.hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+        }
     </style>
 </head>
 <body class="text-gray-100 min-h-screen">
@@ -89,7 +99,7 @@
         <div id="game-list" class="space-y-4"></div>
     </main>
 
-    <!-- DETALLE DEL JUEGO -->
+    <!-- DETALLE DEL JUEGO (MENÚ DE ESPECIFICACIÓN) -->
     <div id="detail-overlay" class="fixed inset-0 z-[100] bg-[#0a0c10] overflow-y-auto hidden">
         <div class="max-w-md mx-auto min-h-screen flex flex-col">
             <div class="relative h-[220px] flex flex-col items-center justify-center p-6 text-center">
@@ -136,16 +146,6 @@
                         </div>
                         <i data-lucide="download" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="window.startDownload('MOD 2')" class="download-btn-premium w-full flex items-center justify-between p-4 rounded-3xl border border-white/20">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-white/50 shadow-[0_0_8px_rgba(255,255,255,0.4)]"></div>
-                            <div class="text-left">
-                                <span class="block text-xs font-black uppercase">DOWNLOAD MOD 2</span>
-                                <span class="text-[8px] opacity-70 font-bold uppercase">Mediafire • Espejo</span>
-                            </div>
-                        </div>
-                        <i data-lucide="download" class="w-4 h-4"></i>
-                    </button>
                 </div>
 
                 <div id="comment-section-box" class="p-5 rounded-3xl border">
@@ -177,14 +177,16 @@
         </div>
     </div>
 
+    <!-- CARGA -->
     <div id="loading-overlay" class="fixed inset-0 z-[1000] backdrop-blur-md flex flex-col items-center justify-center p-10 hidden bg-black/80">
         <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6"></div>
         <h3 id="loading-msg" class="font-black uppercase text-[10px] tracking-widest text-white"></h3>
         <p class="text-blue-600 text-[8px] font-black animate-pulse mt-2 uppercase">Conexión Premium Establecida</p>
     </div>
 
+    <!-- TOAST -->
     <div id="toast-msg" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase shadow-2xl z-[2000] hidden">
-        Enlace copiado al portapapeles
+        Enlace de juego copiado
     </div>
 
     <footer id="main-footer" class="py-10 px-4 border-t text-center">
@@ -209,18 +211,12 @@
         let darkMode = true;
         let selectedGame = null;
 
-        // Limpia la URL y vuelve al inicio
+        // Regresar a la pantalla principal y limpiar URL
         window.goHome = function() {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('game');
-            window.history.pushState({}, '', url.pathname + (url.search ? url.search : ''));
             window.closeDetail();
-        };
-
-        window.autoDetectTheme = function() {
-            const hour = new Date().getHours();
-            const isDayTime = hour >= 6 && hour < 18;
-            window.toggleTheme(!isDayTime);
+            const url = new URL(window.location.href);
+            url.searchParams.delete('juego');
+            window.history.pushState({}, '', url.pathname + url.search);
         };
 
         window.renderGames = function() {
@@ -229,9 +225,8 @@
             container.innerHTML = gamesData.map(game => `
                 <div class="game-card flex gap-3 p-3 rounded-[24px] border ${darkMode ? 'border-white/5 bg-[#11141b] shadow-md' : 'bg-white border-black/5 shadow-sm'}">
                     <div class="relative flex-shrink-0">
-                        <img src="${game.thumb}" class="w-[85px] h-[85px] object-cover rounded-2xl bg-gray-800" alt="${game.name}" loading="eager">
+                        <img src="${game.thumb}" class="w-[85px] h-[85px] object-cover rounded-2xl bg-gray-800" alt="${game.name}">
                         <span class="absolute -top-1 -right-1 bg-green-500 text-white text-[6px] font-black px-1.5 py-0.5 rounded shadow-lg border border-white/20 uppercase">UPDATE</span>
-                        <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[7px] font-black px-2 py-0.5 rounded-md whitespace-nowrap shadow-lg border border-white/10 uppercase">MOD APK</span>
                     </div>
                     <div class="flex-grow min-w-0 flex flex-col justify-between">
                         <div class="flex justify-between items-start">
@@ -245,7 +240,7 @@
                         </div>
                         <p class="text-[10px] leading-tight line-clamp-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}">${game.desc}</p>
                         <button onclick="window.openDetail('${game.id}')" class="w-full download-btn-premium py-2 rounded-xl text-[9px] font-black uppercase shadow-lg shadow-blue-600/20 active:scale-95 transition-transform mt-2">
-                            DOWNLOAD MOD APK
+                            VER ESPECIFICACIONES
                         </button>
                     </div>
                 </div>
@@ -264,29 +259,21 @@
             themeBtn.innerHTML = darkMode ? '<i data-lucide="sun" class="w-4 h-4"></i>' : '<i data-lucide="moon" class="w-4 h-4"></i>';
             window.renderGames();
             if(selectedGame) window.updateDetailUI();
-            if(window.lucide) lucide.createIcons();
         };
 
         window.openDetail = function(id) {
             selectedGame = gamesData.find(g => g.id === id);
             if(!selectedGame) return;
+            
+            // Actualizar Interfaz
             window.updateDetailUI();
             document.getElementById('detail-overlay').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
             
-            // Gestión de URL compatible con GitHub Pages
-            try {
-                const url = new URL(window.location.href);
-                url.searchParams.set('game', id);
-                // Si estamos en un entorno blob (preview) usamos hash como fallback
-                if (window.location.protocol === 'blob:') {
-                    window.location.hash = `game=${id}`;
-                } else {
-                    window.history.pushState({ gameId: id }, '', url.toString());
-                }
-            } catch (e) {
-                window.location.hash = `game=${id}`;
-            }
+            // Actualizar URL - FUNCIONALIDAD CRÍTICA PARA COMPARTIR
+            const url = new URL(window.location.href);
+            url.searchParams.set('juego', id);
+            window.history.pushState({ gameId: id }, '', url.toString());
 
             if(window.setupFirebaseListeners) window.setupFirebaseListeners(id);
         };
@@ -296,17 +283,10 @@
             document.body.style.overflow = 'auto';
             selectedGame = null;
             
-            try {
-                const url = new URL(window.location.href);
-                url.searchParams.delete('game');
-                if (window.location.protocol === 'blob:') {
-                    window.location.hash = '';
-                } else {
-                    window.history.pushState({}, '', url.pathname + url.search);
-                }
-            } catch (e) {
-                window.location.hash = '';
-            }
+            // Limpiar parámetro de la URL al cerrar
+            const url = new URL(window.location.href);
+            url.searchParams.delete('juego');
+            window.history.pushState({}, '', url.pathname + url.search);
         };
 
         window.updateDetailUI = function() {
@@ -317,22 +297,12 @@
             document.getElementById('detail-name').className = `font-black text-xl uppercase mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`;
             document.getElementById('detail-thumb').src = selectedGame.thumb;
             document.getElementById('detail-version').innerText = selectedGame.version;
+            document.getElementById('detail-weight').innerText = selectedGame.weight;
             
-            const wSection = document.getElementById('weight-section');
-            const wLabel = document.getElementById('detail-weight');
-            wLabel.innerText = selectedGame.weight;
-            
-            document.getElementById('detail-info-box').className = `p-5 rounded-3xl border transition-all ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/10 bg-gray-100/80 shadow-sm'}`;
-            wSection.className = `flex items-center justify-between p-3 rounded-2xl border mt-4 ${darkMode ? 'bg-white/5 border-white/5' : 'bg-amber-500/10 border-amber-500/20'}`;
-            wLabel.className = `text-[10px] font-black px-3 py-1 rounded-lg border ${darkMode ? 'bg-amber-500/15 text-amber-600 border-amber-500/10' : 'bg-white text-amber-600 border-amber-500/30 shadow-sm'}`;
-            
+            document.getElementById('detail-info-box').className = `p-5 rounded-3xl border ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/10 bg-gray-100/80 shadow-sm'}`;
             document.getElementById('detail-features').innerHTML = selectedGame.features.map(f => `<div class="flex items-center gap-2 text-[10px] font-bold uppercase ${darkMode ? 'text-blue-400' : 'text-blue-700'}"><i data-lucide="shield-check" class="w-3 h-3 text-green-500"></i> ${f}</div>`).join('');
-            
-            document.getElementById('comment-section-box').className = `p-5 rounded-3xl border transition-all ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/10 bg-gray-100/80 shadow-sm'}`;
+            document.getElementById('comment-section-box').className = `p-5 rounded-3xl border ${darkMode ? 'border-white/5 bg-white/5' : 'border-black/10 bg-gray-100/80 shadow-sm'}`;
             document.getElementById('comment-input').className = `flex-grow text-[10px] p-3 rounded-2xl outline-none border transition-all ${darkMode ? 'border-white/10 bg-[#0a0c10] text-white focus:border-blue-500' : 'border-black/20 bg-white text-gray-900 focus:border-blue-600'}`;
-            document.getElementById('resumen-titulo').className = `text-[10px] font-black uppercase mb-3 flex items-center gap-2 ${darkMode ? 'text-blue-400' : 'text-blue-700'}`;
-            document.getElementById('detail-back-btn').className = `absolute top-6 left-6 w-10 h-10 rounded-xl flex items-center justify-center z-50 backdrop-blur-sm ${darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-gray-800'}`;
-            document.getElementById('detail-share-btn').className = `absolute top-6 right-6 w-10 h-10 rounded-xl flex items-center justify-center z-50 backdrop-blur-sm ${darkMode ? 'bg-white/10 text-white' : 'bg-black/10 text-gray-800'}`;
             
             if(window.lucide) lucide.createIcons();
         };
@@ -342,15 +312,17 @@
         };
 
         window.shareGame = async function(id, name) {
+            // Construir URL específica para el juego
             const url = new URL(window.location.href);
-            // Aseguramos que el parámetro game esté en el link compartido
-            url.searchParams.set('game', id);
-            url.hash = ''; // Limpiamos hash para evitar duplicidad
-            
+            url.searchParams.set('juego', id);
             const shareUrl = url.toString();
             
             if (navigator.share) {
-                navigator.share({ title: 'JoelDroid Mods', text: `Descarga ${name} Mod APK`, url: shareUrl });
+                navigator.share({ 
+                    title: `Descarga ${name} - JoelDroid Mods`, 
+                    text: `Mira las especificaciones y descarga el mod de ${name} aquí:`, 
+                    url: shareUrl 
+                });
             } else {
                 try {
                     await navigator.clipboard.writeText(shareUrl);
@@ -363,27 +335,27 @@
 
         window.startDownload = function(label) {
             const l = document.getElementById('loading-overlay');
-            document.getElementById('loading-msg').innerText = `Enlace de ${label}`;
-            l.classList.remove('hidden'); setTimeout(()=>l.classList.add('hidden'), 2500);
+            document.getElementById('loading-msg').innerText = `Procesando Enlace`;
+            l.classList.remove('hidden'); 
+            setTimeout(()=>l.classList.add('hidden'), 2500);
         };
 
-        // Manejo del botón atrás del sistema/navegador
-        window.onpopstate = function(event) {
+        // Detectar cambios en la URL (Botón atrás del móvil)
+        window.onpopstate = function() {
             const params = new URLSearchParams(window.location.search);
-            const gId = params.get('game');
-            if(gId) {
-                window.openDetail(gId);
+            const juegoId = params.get('juego');
+            if(juegoId) {
+                window.openDetail(juegoId);
             } else {
                 document.getElementById('detail-overlay').classList.add('hidden');
                 document.body.style.overflow = 'auto';
-                selectedGame = null;
             }
         };
 
-        window.autoDetectTheme();
+        window.toggleTheme(true); // Iniciar en modo oscuro
     </script>
 
-    <!-- FIREBASE LÓGICA -->
+    <!-- FIREBASE & LÓGICA DE CARGA -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -393,7 +365,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'joeldroid-mods-yt';
+        const appId = typeof window.__app_id !== 'undefined' ? window.__app_id : 'joeldroid-mods-v2';
         
         let currentUser = null;
 
@@ -413,17 +385,12 @@
             currentUser = u;
             window.renderGames();
             
-            // Lógica de detección de juego al cargar la página (compatible con GitHub Pages)
+            // ANALIZAR URL AL CARGAR (PARA ENLACES COMPARTIDOS DIRECTOS)
             const params = new URLSearchParams(window.location.search);
-            let gId = params.get('game');
-            
-            // Fallback para hashes si se usa en entornos locales o específicos
-            if(!gId && window.location.hash.includes('game=')) {
-                gId = window.location.hash.split('game=')[1];
-            }
-
-            if(gId) {
-                setTimeout(() => window.openDetail(gId), 200);
+            const juegoId = params.get('juego');
+            if(juegoId) {
+                // Pequeño delay para asegurar que el DOM esté listo
+                setTimeout(() => window.openDetail(juegoId), 300);
             }
         });
 
@@ -441,7 +408,7 @@
                         </div>
                         <p class="text-[10px] leading-relaxed font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}">${c.text}</p>
                     </div>
-                `).join('') || '<p class="text-[9px] text-gray-500 italic text-center py-4">Sin comentarios aún...</p>';
+                `).join('') || '<p class="text-[9px] text-gray-500 italic text-center py-4">Sin comentarios...</p>';
                 if(window.lucide) lucide.createIcons();
             });
 
