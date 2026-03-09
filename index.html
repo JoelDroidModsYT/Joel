@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="5df490f0b8c923ae7cdcd211debfa8c85b055dc2" content="5df490f0b8c923ae7cdcd211debfa8c85b055dc2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JoelDroid Mods YT | Premium Platform</title>
     
@@ -25,7 +24,7 @@
             --text-main: #ffffff;
             --text-title: #ffffff;
             --text-muted: #94a3b8;
-            --border-color: rgba(59, 130, 246, 0.3);
+            --border-color: rgba(59, 130, 246, 0.4);
             --nav-bg: rgba(2, 4, 8, 0.98);
             --overlay-bg: #020408;
             --neon-glow: 0.5;
@@ -38,6 +37,10 @@
             --warning-text: #f59e0b;
             --toast-bg: #10b981;
             --toast-text: #ffffff;
+            --search-border: rgba(59, 130, 246, 0.6);
+            --search-placeholder: rgba(255, 255, 255, 0.5);
+            --feature-item-bg: rgba(59, 130, 246, 0.08);
+            --feature-item-border: rgba(59, 130, 246, 0.3);
         }
 
         .light-mode {
@@ -46,7 +49,7 @@
             --text-main: #0f172a;
             --text-title: #1d4ed8;
             --text-muted: #475569;
-            --border-color: rgba(37, 99, 235, 0.2);
+            --border-color: rgba(37, 99, 235, 0.3);
             --nav-bg: rgba(255, 255, 255, 0.98);
             --overlay-bg: #f8fafc;
             --neon-glow: 0.3;
@@ -55,10 +58,14 @@
             --premium-gradient: linear-gradient(to bottom right, #2563eb, #1e40af);
             --detail-name-color: #1e3a8a; 
             --detail-name-shadow: none;
-            --warning-bg: rgba(217, 119, 6, 0.08);
+            --warning-bg: rgba(217, 119, 6, 0.12);
             --warning-text: #b45309;
             --toast-bg: #059669;
             --toast-text: #ffffff;
+            --search-border: rgba(37, 99, 235, 0.5);
+            --search-placeholder: rgba(15, 23, 42, 0.6);
+            --feature-item-bg: rgba(37, 99, 235, 0.05);
+            --feature-item-border: rgba(37, 99, 235, 0.25);
         }
 
         body { 
@@ -167,15 +174,29 @@
 
         .neon-search {
             background-color: var(--card-bg);
-            border: 2px solid var(--border-color);
+            border: 2px solid var(--search-border);
             box-shadow: var(--neon-shadow);
             border-radius: 20px;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
         .neon-search:focus-within {
             border-color: var(--brand-color);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .search-icon-container {
+            color: var(--brand-color);
+            filter: drop-shadow(0 0 5px var(--brand-color));
+            opacity: 1 !important;
+        }
+
+        #game-search::placeholder {
+            color: var(--search-placeholder);
+            opacity: 1;
+            font-weight: 800;
         }
 
         .neon-filter-btn {
@@ -214,6 +235,20 @@
             background-color: var(--card-bg); 
             border: 2px solid var(--border-color);
             box-shadow: var(--neon-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Ajuste específico para visibilidad de los items de características */
+        .feature-item {
+            background-color: var(--feature-item-bg);
+            border: 1px solid var(--feature-item-border);
+            border-radius: 1rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: transform 0.2s ease;
         }
 
         .warning-box {
@@ -248,7 +283,6 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Sticky Header for Detail View */
         .sticky-detail-header {
             position: sticky;
             top: 0;
@@ -258,6 +292,42 @@
             box-shadow: var(--neon-shadow);
             padding: 0.75rem 1.5rem;
         }
+
+        .lang-select-container { position: relative; }
+        #lang-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            box-shadow: var(--neon-shadow);
+            border-radius: 15px;
+            backdrop-filter: blur(20px);
+            padding: 5px;
+            display: none;
+            z-index: 100;
+            min-width: 160px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #lang-dropdown.active { display: block; }
+        .lang-option {
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            color: var(--text-main);
+        }
+        .lang-option:hover { background: rgba(59, 130, 246, 0.1); color: var(--brand-color); }
+        .flag-img { width: 18px; height: 12px; object-fit: cover; border-radius: 2px; }
     </style>
 </head>
 <body class="flex flex-col">
@@ -278,6 +348,37 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
+                <div class="lang-select-container">
+                    <button onclick="window.toggleLangDropdown()" class="w-11 h-11 rounded-2xl bg-gray-500/10 flex items-center justify-center text-blue-500 border-2 border-blue-500/30">
+                        <i data-lucide="languages" class="w-5 h-5"></i>
+                    </button>
+                    <div id="lang-dropdown">
+                        <div class="lang-option" onclick="window.changeLang('es')">
+                            <img src="https://flagcdn.com/w40/es.png" class="flag-img" alt="ES"> Español
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('en')">
+                            <img src="https://flagcdn.com/w40/us.png" class="flag-img" alt="US"> English
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('ru')">
+                            <img src="https://flagcdn.com/w40/ru.png" class="flag-img" alt="RU"> Русский
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('jp')">
+                            <img src="https://flagcdn.com/w40/jp.png" class="flag-img" alt="JP"> 日本語
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('in')">
+                            <img src="https://flagcdn.com/w40/in.png" class="flag-img" alt="IN"> हिन्दी
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('pt')">
+                            <img src="https://flagcdn.com/w40/br.png" class="flag-img" alt="BR"> Português
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('fr')">
+                            <img src="https://flagcdn.com/w40/fr.png" class="flag-img" alt="FR"> Français
+                        </div>
+                        <div class="lang-option" onclick="window.changeLang('zh')">
+                            <img src="https://flagcdn.com/w40/cn.png" class="flag-img" alt="CN"> 中文
+                        </div>
+                    </div>
+                </div>
                 <button onclick="window.toggleTheme()" class="w-11 h-11 rounded-2xl bg-gray-500/10 flex items-center justify-center text-blue-500 border-2 border-blue-500/30">
                     <i id="theme-icon" data-lucide="sun" class="w-5 h-5"></i>
                 </button>
@@ -289,33 +390,34 @@
     <main id="home-view" class="max-w-md mx-auto px-5 py-8 flex-grow w-full z-10">
         <div id="home-banner" class="mb-6 p-8 rounded-[40px] bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-2xl relative overflow-hidden border-2 border-blue-400/30">
             <div class="relative z-10">
-                <h2 class="font-black text-3xl uppercase leading-none mb-2 tracking-tighter">PREMIUM APKS</h2>
-                <p class="text-[11px] opacity-90 font-medium">Contenido verificado por JoelDroid.</p>
+                <h2 id="txt-premium-apks" class="font-black text-3xl uppercase leading-none mb-2 tracking-tighter">PREMIUM APKS</h2>
+                <p id="txt-banner-sub" class="text-[11px] opacity-90 font-medium">Contenido verificado por JoelDroid.</p>
             </div>
             <i data-lucide="layout-grid" class="absolute -right-12 -bottom-12 opacity-20 w-48 h-48 rotate-12"></i>
         </div>
 
+        <!-- BARRA DE BÚSQUEDA -->
         <div class="mb-6 neon-search p-1 flex items-center gap-3">
-            <div class="w-10 h-10 flex items-center justify-center text-blue-500 ml-2">
-                <i data-lucide="search" class="w-5 h-5"></i>
+            <div class="search-icon-container w-10 h-10 flex items-center justify-center ml-2">
+                <i data-lucide="search" class="w-6 h-6 stroke-[3]"></i>
             </div>
-            <input type="text" id="game-search" placeholder="BUSCAR JUEGO..." class="bg-transparent border-none outline-none text-[11px] font-black tracking-widest text-current flex-grow placeholder:opacity-30 uppercase">
+            <input type="text" id="game-search" placeholder="BUSCAR JUEGO..." class="bg-transparent border-none outline-none text-[12px] font-black tracking-widest text-current flex-grow placeholder:opacity-100 uppercase">
         </div>
 
-        <div class="flex justify-between items-center gap-2 mb-10 overflow-x-auto scrollbar-hide pb-2">
+        <div class="flex justify-between items-center gap-2 mb-8 overflow-x-auto scrollbar-hide pb-2">
             <button onclick="window.filterGames('all')" id="btn-all" class="neon-filter-btn active flex-1 whitespace-nowrap">TODOS</button>
             <button onclick="window.filterGames('updated')" id="btn-updated" class="neon-filter-btn flex-1 whitespace-nowrap">ACTUALIZADOS</button>
             <button onclick="window.filterGames('popular')" id="btn-popular" class="neon-filter-btn flex-1 whitespace-nowrap">POPULAR</button>
         </div>
 
-        <div id="game-list" class="space-y-8"></div>
+        <div id="game-list" class="space-y-4"></div>
     </main>
 
     <footer class="max-w-md mx-auto w-full py-10 px-6 text-center z-10">
         <div class="w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--border-color)] to-transparent mb-6"></div>
         <p class="footer-text text-[10px] font-black uppercase tracking-[0.3em] opacity-70">
             JOELDROID MODS YT &copy; 2026<br>
-            <span class="text-[8px] opacity-50">TODOS LOS DERECHOS RESERVADOS</span>
+            <span id="txt-rights" class="text-[8px] opacity-50">TODOS LOS DERECHOS RESERVADOS</span>
         </p>
     </footer>
 
@@ -324,14 +426,11 @@
         <div class="neon-background-overlay" id="neon-bg-overlay"></div>
         
         <div class="max-w-md mx-auto min-h-screen flex flex-col relative z-10">
-            <!-- HEADER STICKY CORREGIDO -->
             <div class="sticky-detail-header flex justify-between items-center gap-4">
-                <!-- Botón Atrás -->
                 <button onclick="window.location.hash = ''" class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-600 text-white shadow-lg active:scale-90 transition-transform">
                     <i data-lucide="chevron-left" class="w-6 h-6"></i>
                 </button>
 
-                <!-- Logo y Título Central (Click para inicio) -->
                 <div onclick="window.location.hash = ''" class="flex items-center gap-2 cursor-pointer active:opacity-70 transition-opacity">
                     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
                         <i data-lucide="zap" class="w-4 h-4 text-white fill-current"></i>
@@ -342,7 +441,6 @@
                     </div>
                 </div>
 
-                <!-- Botón Compartir -->
                 <button onclick="window.shareGame()" class="w-10 h-10 rounded-xl flex items-center justify-center bg-blue-500/20 text-blue-500 border border-blue-500/30 active:scale-90 transition-transform">
                     <i data-lucide="share-2" class="w-5 h-5"></i>
                 </button>
@@ -351,7 +449,6 @@
             <div class="relative min-h-[300px] flex flex-col items-center justify-center p-8 text-center">
                 <div class="absolute inset-0 bg-gradient-to-b from-blue-600/10 to-transparent"></div>
                 
-                <!-- ICONO DEL JUEGO -->
                 <div class="relative mt-4">
                     <img id="detail-thumb" src="" class="w-32 h-32 rounded-[45px] shadow-2xl border-4 border-white/20 object-cover relative z-10">
                     <div class="absolute inset-0 bg-blue-500 blur-[50px] opacity-40 scale-150"></div>
@@ -365,9 +462,9 @@
             </div>
 
             <div class="px-8 space-y-6 pb-16">
-                <!-- INFO DEL MOD -->
+                <!-- SECCIÓN INFO DEL MOD MEJORADA -->
                 <div class="box-premium p-8 rounded-[40px]">
-                    <h4 class="text-[12px] font-black uppercase mb-6 flex items-center gap-2 text-blue-600">
+                    <h4 id="txt-info-mod" class="text-[12px] font-black uppercase mb-6 flex items-center gap-2 text-blue-600">
                         <i data-lucide="cpu" class="w-5 h-5"></i> INFO DEL MOD
                     </h4>
                     <div id="detail-features" class="space-y-4"></div>
@@ -375,7 +472,7 @@
 
                 <div class="warning-box p-4 flex gap-3 items-start">
                     <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0"></i>
-                    <p>Si tienes problemas con la descarga del MOD 1 usa el enlace del MOD 2 para asegurar una descarga exitosa.</p>
+                    <p id="txt-warning-msg">Si tienes problemas con la descarga del MOD 1 usa el enlace del MOD 2 para asegurar una descarga exitosa.</p>
                 </div>
 
                 <div class="space-y-4">
@@ -383,7 +480,7 @@
                         <div class="flex items-center gap-5">
                             <i data-lucide="download-cloud" class="w-6 h-6"></i>
                             <div class="text-left">
-                                <span class="font-black uppercase tracking-tight block">DOWNLOAD MOD 1</span>
+                                <span id="txt-dl-mod1" class="font-black uppercase tracking-tight block">DESCARGAR MOD 1</span>
                                 <span class="text-[8px] font-bold opacity-80 mt-[-2px] block tracking-widest uppercase">Mediafire</span>
                             </div>
                         </div>
@@ -394,7 +491,7 @@
                         <div class="flex items-center gap-5">
                             <i data-lucide="download-cloud" class="w-6 h-6"></i>
                             <div class="text-left">
-                                <span class="font-black uppercase tracking-tight block">DOWNLOAD MOD 2</span>
+                                <span id="txt-dl-mod2" class="font-black uppercase tracking-tight block">DESCARGAR MOD 2</span>
                                 <span class="text-[8px] font-bold opacity-80 mt-[-2px] block tracking-widest uppercase">Mediafire</span>
                             </div>
                         </div>
@@ -406,105 +503,146 @@
     </div>
 
     <script>
-        const gamesData = [
-            { 
-                id: "global-truck", 
-                name: "Global Truck Online", 
-                thumb: "https://play-lh.googleusercontent.com/JJiHxM3IMImgKaROZ3U6yivclo5jxepBfZRShfCoxij7SrY233VKi_sp0YoxiWyHSfttjrgfYAy2vDVtYiaU5dw=w240-h480-rw", 
-                version: "V0.9.1", 
-                weight: "700 MB", 
-                shortDesc: "Simulador de camiones con multijugador y físicas reales.", 
-                features: ["Dinero Infinito", "Garaje Desbloqueado", "Anti-Ban"],
-                tags: ["updated", "popular"]
+        const i18n = {
+            es: {
+                search: "BUSCAR JUEGO...", all: "TODOS", updated: "ACTUALIZADOS", popular: "POPULAR",
+                premium: "PREMIUM APKS", banner_sub: "Contenido verificado por JoelDroid.",
+                rights: "TODOS LOS DERECHOS RESERVADOS", info_mod: "INFO DEL MOD",
+                warning: "Si tienes problemas con la descarga del MOD 1 usa el enlace del MOD 2 para asegurar una descarga exitosa.",
+                btn_dl: "DESCARGAR MOD APK", version: "VERSIÓN", weight: "PESO",
+                badge_update: "ACTUALIZADO", badge_mod: "MOD APK", toast_copy: "Enlace copiado", no_res: "Sin resultados",
+                dl_mod1: "DESCARGAR MOD 1", dl_mod2: "DESCARGAR MOD 2"
             },
-            { 
-                id: "trucker-europe-3", 
-                name: "Trucker of Europe 3", 
-                thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1rjfLgFxiBAOozVIDrq0X6KmF92Wy56gGoj8e2ZM7Ocbw5_AQK4kpzgc&s=10", 
-                version: "V0.43.3", 
-                weight: "530 MB", 
-                shortDesc: "La mejor experiencia de transporte pesado en Europa.", 
-                features: ["Free Shopping", "Combustible Infinito", "VIP Unlocked"],
-                tags: ["updated"]
+            en: {
+                search: "SEARCH GAME...", all: "ALL", updated: "UPDATED", popular: "POPULAR",
+                premium: "PREMIUM APKS", banner_sub: "Content verified by JoelDroid.",
+                rights: "ALL RIGHTS RESERVED", info_mod: "MOD INFO",
+                warning: "If you have problems downloading MOD 1, use the MOD 2 link to ensure a successful download.",
+                btn_dl: "DOWNLOAD MOD APK", version: "VERSION", weight: "WEIGHT",
+                badge_update: "UPDATE", badge_mod: "MOD APK", toast_copy: "Link copied", no_res: "No results",
+                dl_mod1: "DOWNLOAD MOD 1", dl_mod2: "DOWNLOAD MOD 2"
             },
-            { 
-                id: "bigrigs-sim", 
-                name: "Truck Simulator Bigrigs", 
-                thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd0ALg5YipsGER2CjBhltvbsAHovUOjx2TzkSEoIAIR0RXgiu2jz-l2JE&s=10", 
-                version: "V1.5.7", 
-                weight: "1.1 GB", 
-                shortDesc: "Domina las carreteras americanas con camiones potentes.", 
-                features: ["Todo Desbloqueado", "No Damage", "Premium Trucks"],
-                tags: ["popular"]
+            ru: {
+                search: "ПОИСК ИГРЫ...", all: "ВСЕ", updated: "ОБНОВЛЕННЫЕ", popular: "ПОПУЛЯРНЫЕ",
+                premium: "ПРЕМИУМ APKS", banner_sub: "Контент проверен JoelDroid.",
+                rights: "ВСЕ ПРАВА ЗАЩИЩЕНЫ", info_mod: "ИНФО МОДА",
+                warning: "Если возникли проблемы с MOD 1, используйте ссылку MOD 2 для загрузки.",
+                btn_dl: "СКАЧАТЬ MOD APK", version: "ВЕРСИЯ", weight: "ВЕС",
+                badge_update: "ОБНОВЛЕНО", badge_mod: "MOD APK", toast_copy: "Ссылка скопирована", no_res: "Нет результатов",
+                dl_mod1: "СКАЧАТЬ MOD 1", dl_mod2: "СКАЧАТЬ MOD 2"
+            },
+            jp: {
+                search: "ゲームを検索...", all: "すべて", updated: "更新済み", popular: "人気",
+                premium: "プレミアムAPKS", banner_sub: "JoelDroidによって確認されたコンテンツ。",
+                rights: "全著作権所有", info_mod: "MOD情報",
+                warning: "MOD 1のダウンロードに問題がある場合は、MOD 2のリンクを使用してください。",
+                btn_dl: "MOD APKをダウンロード", version: "バージョン", weight: "重量",
+                badge_update: "アップデート", badge_mod: "MOD APK", toast_copy: "リンクをコピーしました", no_res: "結果なし",
+                dl_mod1: "MOD 1をダウンロード", dl_mod2: "MOD 2をダウンロード"
+            },
+            in: {
+                search: "खेल खोजें...", all: "सभी", updated: "अपडेटेड", popular: "लोकप्रिय",
+                premium: "प्रीमियम APKS", banner_sub: "JoelDroid द्वारा सत्यापित सामग्री।",
+                rights: "सर्वाधिकार सुरक्षित", info_mod: "मोड जानकारी",
+                warning: "यदि MOD 1 में समस्या है, तो सफल डाउनलोड के लिए MOD 2 लिंक का उपयोग करें।",
+                btn_dl: "मोड APK डाउनलोड करें", version: "संस्करण", weight: "वजन",
+                badge_update: "अपडेट", badge_mod: "मोड APK", toast_copy: "लिंक कॉपी किया गया", no_res: "कोई परिणाम नहीं",
+                dl_mod1: "मोड 1 डाउनलोड करें", dl_mod2: "मोड 2 डाउनलोड करें"
+            },
+            pt: {
+                search: "BUSCAR JOGO...", all: "TODOS", updated: "ATUALIZADOS", popular: "POPULAR",
+                premium: "APKS PREMIUM", banner_sub: "Conteúdo verificado por JoelDroid.",
+                rights: "TODOS OS DIREITOS RESERVADOS", info_mod: "INFO DO MOD",
+                warning: "Se você tiver problemas para baixar o MOD 1, use o link do MOD 2.",
+                btn_dl: "BAIXAR MOD APK", version: "VERSÃO", weight: "PESO",
+                badge_update: "ATUALIZADO", badge_mod: "MOD APK", toast_copy: "Link copiado", no_res: "Sem resultados",
+                dl_mod1: "BAIXAR MOD 1", dl_mod2: "BAIXAR MOD 2"
+            },
+            fr: {
+                search: "CHERCHER JEU...", all: "TOUS", updated: "MIS À JOUR", popular: "POPULAIRE",
+                premium: "APKS PREMIUM", banner_sub: "Contenu vérifié par JoelDroid.",
+                rights: "TOUS DROITS RÉSERVÉS", info_mod: "INFO DU MOD",
+                warning: "Si vous rencontrez des problèmes avec le MOD 1, utilisez le lien du MOD 2.",
+                btn_dl: "TÉLÉCHARGER MOD APK", version: "VERSION", weight: "POIDS",
+                badge_update: "MIS À JOUR", badge_mod: "MOD APK", toast_copy: "Lien copié", no_res: "Aucun résultat",
+                dl_mod1: "TÉLÉCHARGER MOD 1", dl_mod2: "TÉLÉCHARGER MOD 2"
+            },
+            zh: {
+                search: "搜索游戏...", all: "全部", updated: "已更新", popular: "热门",
+                premium: "溢价APKS", banner_sub: "内容由 JoelDroid 验证。",
+                rights: "版权所有", info_mod: "模组信息",
+                warning: "如果下载 MOD 1 出现问题，请使用 MOD 2 链接。",
+                btn_dl: "下载模组 APK", version: "版本", weight: "重量",
+                badge_update: "更新", badge_mod: "模组 APK", toast_copy: "链接已复制", no_res: "无结果",
+                dl_mod1: "下载模组 1", dl_mod2: "下载模组 2"
             }
+        };
+
+        const gamesData = [
+            { id: "global-truck", name: "Global Truck Online", thumb: "https://play-lh.googleusercontent.com/JJiHxM3IMImgKaROZ3U6yivclo5jxepBfZRShfCoxij7SrY233VKi_sp0YoxiWyHSfttjrgfYAy2vDVtYiaU5dw=w240-h480-rw", version: "V0.9.1", weight: "700 MB", shortDesc: { es: "Simulador de camiones con multijugador y físicas reales.", en: "Truck simulator with multiplayer and real physics.", ru: "Симулятор грузовика с мультиплеером и реальной физикой.", jp: "マルチプレイヤーとリアルな物理学を備えたトラックシミュレーター。", in: "मल्टीप्लेयर और वास्तविक भौतिकी के साथ ट्रक सिम्युलेटर।", pt: "Simulador de caminhão con multijogador e física real.", fr: "Simulateur de camion avec multijoueur et physique réelle.", zh: "具有多人游戏和真实物理特性的卡车模拟器。" }, features: { es: ["Dinero Infinito", "Garaje Desbloqueado", "Anti-Ban"], en: ["Infinite Money", "Garage Unlocked", "Anti-Ban"], ru: ["Бесконечные деньги", "Гараж разблокирован", "Анти-бан"], jp: ["無限の金", "ガレージが解放されました", "アンチバン"], in: ["अनंत धन", "गैरेज अनलॉक", "एंटी-बैन"], pt: ["Dinheiro Infinito", "Garagem Desbloqueada", "Anti-Ban"], fr: ["Argent Infini", "Garage Débloqué", "Anti-Ban"], zh: ["无限金钱", "车库已解锁", "反封禁"] }, tags: ["updated", "popular"] },
+            { id: "trucker-europe-3", name: "Trucker of Europe 3", thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1rjfLgFxiBAOozVIDrq0X6KmF92Wy56gGoj8e2ZM7Ocbw5_AQK4kpzgc&s=10", version: "V0.43.3", weight: "530 MB", shortDesc: { es: "La mejor experiencia de transporte pesado en Europa.", en: "The best heavy transport experience in Europe.", ru: "Лучший опыт тяжелых перевозок в Европе.", jp: "ヨーロッパで最高の重量輸送体験。", in: "यूरोप में सबसे अच्छा भारी परिवहन अनुभव।", pt: "A mejor experiência de transporte pesado na Europa.", fr: "La meilleure expérience de transport lourd en Europe.", zh: "欧洲最好的重型运输体验。" }, features: { es: ["Compras Gratis", "Combustible Infinito", "VIP Desbloqueado"], en: ["Free Shopping", "Infinite Fuel", "VIP Unlocked"], ru: ["Бесплатные покупки", "Бесконечное топливо", "VIP разблокирован"], jp: ["無料ショッピング", "無限燃料", "VIP解放"], in: ["फ्री शॉपिंग", "अनंत ईंधन", "VIP अनलॉक"], pt: ["Compras Grátis", "Combustível Infinito", "VIP Desbloqueado"], fr: ["Achats Gratuits", "Carburant Infini", "VIP Débloqué"], zh: ["免费购物", "无限燃料", "VIP已解锁"] }, tags: ["updated"] },
+            { id: "bigrigs-sim", name: "Truck Simulator Bigrigs", thumb: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQd0ALg5YipsGER2CjBhltvbsAHovUOjx2TzkSEoIAIR0RXgiu2jz-l2JE&s=10", version: "V1.5.7", weight: "1.1 GB", shortDesc: { es: "Domina las carreteras americanas con camiones potentes.", en: "Master American roads with powerful trucks.", ru: "Осваивайте американские дороги на мощных грузовиках.", jp: "強力なトラックでアメリカの道をマスターしましょう。", in: "शक्तिशाली ट्रकों के साथ अमेरिकी सड़कों पर महारत हासिल करें।", pt: "Domine as estradas americanas com caminhões potentes.", fr: "Maîtrisez les routes américaines avec des camions puissants.", zh: "驾驶强大的卡车称霸美国公路。" }, features: { es: ["Todo Desbloqueado", "Sin Daños", "Camiones Premium"], en: ["Everything Unlocked", "No Damage", "Premium Trucks"], ru: ["Все разблокировано", "Без повреждений", "Премиум-грузовики"], jp: ["すべて解放", "ダメージなし", "プレミアムトラック"], in: ["सब कुछ अनलॉक", "कोई नुकसान नहीं", "प्रीमियम ट्रक"], pt: ["Tudo Desbloqueado", "Sem Danos", "Caminhões Premium"], fr: ["Tout Débloqué", "Pas de Dégâts", "Camions Premium"], zh: ["全部解锁", "无损毁", "高级卡车"] }, tags: ["popular"] },
+            { id: "car-parking", name: "Car Parking Multiplayer", thumb: "https://play-lh.googleusercontent.com/6S3S6f8_p8XoO8gXWqZf_A_V0yF1H-z8-N_3qB_9-hU4j7K7V8_Z8-z8-v_A-z8-v_A=w240-h480-rw", version: "V4.8.18.7", weight: "800 MB", shortDesc: { es: "Simulador de conducción y aparcamiento con mundo abierto.", en: "Open world driving and parking simulator.", ru: "Симулятор вождения и парковки в открытом мире.", jp: "オープンワールドの運転および駐車シミュレーター。", in: "ओपन वर्ल्ड ड्राइविंग और पार्किंग सिम्युलेटर।", pt: "Simulador de dirección e estacionamento em mundo abierto.", fr: "Simulateur de conduite et de stationnement en monde ouvert.", zh: "开放世界驾驶和停车模拟器。" }, features: { es: ["Dinero Infinito", "Monedas Ilimitadas", "Coches Desbloqueados"], en: ["Infinite Money", "Unlimited Coins", "Cars Unlocked"], ru: ["Бесконечные деньги", "Неограниченное количество монет", "Машины разблокированы"], jp: ["無限の金", "無制限のコイン", "車が解放されました"], in: ["अनंत धन", "असीमित सिक्के", "कारें अनलॉक"], pt: ["Dinheiro Infinito", "Moedas Ilimitadas", "Carros Desbloqueados"], fr: ["Argent Infini", "Pièces Illimitées", "Voitures Débloquées"], zh: ["无限金钱", "无限金币", "汽车已解锁"] }, tags: ["updated", "popular"] }
         ];
 
         let isDarkMode = true;
         let activeFilter = 'all';
         let searchQuery = '';
+        let currentLang = 'es';
 
-        window.onhashchange = function() {
-            const hash = window.location.hash.substring(1);
-            if (hash) {
-                window.openDetailUI(hash);
-            } else {
-                window.goToHome();
-            }
+        window.toggleLangDropdown = function() { document.getElementById('lang-dropdown').classList.toggle('active'); };
+        
+        window.changeLang = function(lang) { 
+            currentLang = lang; 
+            document.getElementById('lang-dropdown').classList.remove('active'); 
+            updateInterfaceLang(); 
+            window.renderGames(); 
         };
 
-        function setTheme(dark) {
-            isDarkMode = dark;
-            document.body.classList.toggle('light-mode', !isDarkMode);
-            const themeIcon = document.getElementById('theme-icon');
-            if (themeIcon) {
-                themeIcon.setAttribute('data-lucide', isDarkMode ? 'sun' : 'moon');
-            }
-            if(window.lucide) lucide.createIcons();
+        function detectBrowserLanguage() {
+            const browserLang = navigator.language || navigator.userLanguage || "es";
+            const shortLang = browserLang.split('-')[0].toLowerCase();
+            const langMap = { 'es': 'es', 'en': 'en', 'ru': 'ru', 'ja': 'jp', 'hi': 'in', 'pt': 'pt', 'fr': 'fr', 'zh': 'zh' };
+            currentLang = langMap[shortLang] || 'es';
         }
 
-        function populateNeonBackground(containerId, count) {
-            const container = document.getElementById(containerId);
-            if(!container) return;
-            container.innerHTML = '';
-            const colors = ['#3b82f6', '#22c55e', '#f43f5e', '#a855f7'];
-            const types = ['square', 'circle', 'hexagon'];
-
-            for(let i=0; i<count; i++) {
-                const shape = document.createElement('div');
-                const type = types[Math.floor(Math.random() * types.length)];
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                shape.className = `neon-shape ${type}`;
-                shape.style.borderColor = color;
-                shape.style.boxShadow = `0 0 12px ${color}`;
-                const size = 30 + Math.random() * 45;
-                shape.style.width = size + 'px';
-                shape.style.height = size + 'px';
-                shape.style.left = Math.random() * 95 + 'vw';
-                shape.style.animationDuration = (12 + Math.random() * 15) + 's';
-                shape.style.animationDelay = (Math.random() * 10) + 's';
-                container.appendChild(shape);
-            }
+        function updateInterfaceLang() {
+            const t = i18n[currentLang];
+            document.getElementById('game-search').placeholder = t.search;
+            document.getElementById('btn-all').innerText = t.all;
+            document.getElementById('btn-updated').innerText = t.updated;
+            document.getElementById('btn-popular').innerText = t.popular;
+            document.getElementById('txt-premium-apks').innerText = t.premium;
+            document.getElementById('txt-banner-sub').innerText = t.banner_sub;
+            document.getElementById('txt-rights').innerText = t.rights;
+            document.getElementById('txt-info-mod').innerHTML = `<i data-lucide="cpu" class="w-5 h-5"></i> ${t.info_mod}`;
+            document.getElementById('txt-warning-msg').innerText = t.warning;
+            document.getElementById('toast').innerText = t.toast_copy;
+            document.getElementById('txt-dl-mod1').innerText = t.dl_mod1;
+            document.getElementById('txt-dl-mod2').innerText = t.dl_mod2;
+            
+            if(window.location.hash) window.openDetailUI(window.location.hash.substring(1));
+            if(window.lucide) lucide.createIcons();
         }
 
         window.renderGames = function() {
             const container = document.getElementById('game-list');
+            const t = i18n[currentLang];
             const filtered = gamesData.filter(game => {
                 const matchesSearch = game.name.toLowerCase().includes(searchQuery.toLowerCase());
                 const matchesFilter = activeFilter === 'all' || game.tags.includes(activeFilter);
                 return matchesSearch && matchesFilter;
             });
-
-            if(filtered.length === 0) {
-                container.innerHTML = '<p class="text-center opacity-40 font-black py-20 uppercase tracking-[0.2em] text-[10px]">Sin resultados</p>';
-                return;
+            if(filtered.length === 0) { 
+                container.innerHTML = `<p class="text-center opacity-40 font-black py-20 uppercase tracking-[0.2em] text-[10px]">${t.no_res}</p>`; 
+                return; 
             }
-
             container.innerHTML = filtered.map(game => `
                 <div class="game-card flex gap-5 p-5 rounded-[38px] animate-in fade-in zoom-in duration-300">
                     <div class="shrink-0 relative w-24 h-24">
                         <img src="${game.thumb}" class="w-full h-full object-cover rounded-[30px] border-2 border-white/10 shadow-lg relative z-10">
-                        <div class="update-badge">UPDATE</div>
-                        <div class="mod-badge">MOD APK</div>
+                        <div class="update-badge">${t.badge_update}</div>
+                        <div class="mod-badge">${t.badge_mod}</div>
                     </div>
                     <div class="flex-grow flex flex-col justify-center min-w-0">
                         <h3 class="text-[15px] uppercase truncate font-black tracking-tighter" style="color: var(--text-title)">${game.name}</h3>
@@ -512,9 +650,9 @@
                             <span class="text-[9px] font-black text-green-500">${game.version}</span>
                             <span class="text-[9px] font-black text-blue-500 uppercase">• ${game.weight}</span>
                         </div>
-                        <p class="text-[11px] line-clamp-2 opacity-70" style="color: var(--text-muted)">${game.shortDesc}</p>
+                        <p class="text-[11px] line-clamp-2 opacity-70" style="color: var(--text-muted)">${game.shortDesc[currentLang] || game.shortDesc.es}</p>
                         <button onclick="window.location.hash = '${game.id}'" class="mt-4 w-full btn-download-premium py-2.5 rounded-2xl text-[9px] tracking-widest active:scale-95 transition-all">
-                            DOWNLOAD MOD APK
+                            ${t.btn_dl}
                         </button>
                     </div>
                 </div>
@@ -522,69 +660,55 @@
             if(window.lucide) lucide.createIcons();
         };
 
-        window.filterGames = function(filter) {
-            activeFilter = filter;
-            document.querySelectorAll('.neon-filter-btn').forEach(btn => btn.classList.remove('active'));
-            const filterBtn = document.getElementById('btn-' + filter);
-            if(filterBtn) filterBtn.classList.add('active');
-            window.renderGames();
-        };
-
-        document.getElementById('game-search').addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            window.renderGames();
-        });
-
         window.openDetailUI = function(id) {
-            const game = gamesData.find(g => g.id === id);
-            if (!game) return;
-
+            const game = gamesData.find(g => g.id === id); if (!game) return;
+            const t = i18n[currentLang];
             document.getElementById('detail-name').innerText = game.name;
             document.getElementById('detail-thumb').src = game.thumb;
-            document.getElementById('detail-version').innerText = "VERSIÓN: " + game.version;
-            document.getElementById('detail-weight').innerText = "PESO: " + game.weight;
-            document.getElementById('detail-features').innerHTML = game.features.map(f => `
-                <div class="flex items-center gap-3 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20">
-                    <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500"></i>
+            document.getElementById('detail-version').innerText = `${t.version}: ${game.version}`;
+            document.getElementById('detail-weight').innerText = `${t.weight}: ${game.weight}`;
+            const features = game.features[currentLang] || game.features.es;
+            document.getElementById('detail-features').innerHTML = features.map(f => `
+                <div class="feature-item">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-blue-500 shrink-0"></i>
                     <span class="text-[11px] font-bold uppercase tracking-tight text-current">${f}</span>
                 </div>
             `).join('');
-            
             document.getElementById('detail-overlay').classList.remove('hidden');
             document.getElementById('home-view').classList.add('hidden');
-            populateNeonBackground('neon-bg-overlay', 15);
-            window.scrollTo(0,0);
+            populateNeonBackground('neon-bg-overlay', 15); window.scrollTo(0,0);
             if(window.lucide) lucide.createIcons();
         };
 
-        window.goToHome = function() { 
-            document.getElementById('detail-overlay').classList.add('hidden'); 
-            document.getElementById('home-view').classList.remove('hidden');
-        };
+        window.onhashchange = function() { const h = window.location.hash.substring(1); if(h) window.openDetailUI(h); else window.goToHome(); };
+        window.goToHome = function() { document.getElementById('detail-overlay').classList.add('hidden'); document.getElementById('home-view').classList.remove('hidden'); };
+        window.toggleTheme = function() { isDarkMode = !isDarkMode; document.body.classList.toggle('light-mode', !isDarkMode); document.getElementById('theme-icon').setAttribute('data-lucide', isDarkMode ? 'sun' : 'moon'); if(window.lucide) lucide.createIcons(); };
+        window.filterGames = function(f) { activeFilter = f; document.querySelectorAll('.neon-filter-btn').forEach(b => b.classList.remove('active')); document.getElementById('btn-'+f).classList.add('active'); window.renderGames(); };
+        document.getElementById('game-search').addEventListener('input', (e) => { searchQuery = e.target.value; window.renderGames(); });
+        window.shareGame = function() { const ta = document.createElement("textarea"); ta.value = window.location.href; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); const t = document.getElementById('toast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); };
 
-        window.shareGame = function() {
-            const textArea = document.createElement("textarea");
-            textArea.value = window.location.href;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        };
+        function populateNeonBackground(id, c) {
+            const container = document.getElementById(id); if(!container) return; container.innerHTML = '';
+            const cls = ['#3b82f6', '#22c55e', '#f43f5e', '#a855f7']; const ty = ['square', 'circle', 'hexagon'];
+            for(let i=0; i<c; i++) {
+                const s = document.createElement('div'); const t = ty[Math.floor(Math.random()*ty.length)]; const cl = cls[Math.floor(Math.random()*cls.length)];
+                s.className = `neon-shape ${t}`; s.style.borderColor = cl; s.style.boxShadow = `0 0 12px ${cl}`; const sz = 30 + Math.random()*45;
+                s.style.width = s.style.height = sz + 'px'; s.style.left = Math.random()*95 + 'vw'; s.style.animationDuration = (12+Math.random()*15)+'s'; s.style.animationDelay = (Math.random()*10)+'s';
+                container.appendChild(s);
+            }
+        }
 
-        window.toggleTheme = function() {
-            setTheme(!isDarkMode);
-        };
-
-        window.onload = () => { 
-            const hour = new Date().getHours();
-            setTheme(!(hour >= 6 && hour < 18));
+        window.onload = () => {
+            const h = new Date().getHours(); isDarkMode = !(h >= 6 && h < 18);
+            document.body.classList.toggle('light-mode', !isDarkMode);
             populateNeonBackground('neon-bg-main', 25);
-            window.renderGames(); 
+            detectBrowserLanguage();
+            updateInterfaceLang(); 
+            window.renderGames();
             if(window.location.hash) window.openDetailUI(window.location.hash.substring(1));
         };
+
+        window.addEventListener('click', (e) => { if(!document.querySelector('.lang-select-container').contains(e.target)) document.getElementById('lang-dropdown').classList.remove('active'); });
     </script>
 </body>
 </html>
